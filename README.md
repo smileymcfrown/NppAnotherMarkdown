@@ -143,7 +143,7 @@ A command line can be configured in `plugins\Config\AnotherMarkdown.ini` that re
 
 ```
 [Options]
-PreProcessorExe=C:	ools\preprocessor.exe
+PreProcessorExe=C:\tools\preprocessor.exe
 PreProcessorArguments=%inputfile% %outputfile%
 ```
 
