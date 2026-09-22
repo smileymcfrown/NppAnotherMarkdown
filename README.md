@@ -155,6 +155,14 @@ To open the settings for this plugin: Plugins -> AnotherMarkdown -> Settings
 * #### Export to PDF...
     Prints the current preview to a PDF file.
 
+### Large documents
+
+The preview renders incrementally: after the first render an edit only
+re-renders and replaces the blocks that actually changed, so typing stays
+responsive in multi-megabyte files and the scroll position is kept. A document
+containing raw `<script>`, `<iframe>` or `<form>` markup (which the sanitizer
+removes) falls back to re-rendering in full.
+
 ### Working in the preview
 
 * **Find** - press `Ctrl+F` (or `F3`) while the preview has the focus, use the *Find* toolbar button or *Plugins -> AnotherMarkdown -> Find in preview...*. All matches are highlighted; `Enter` / `Shift+Enter` (or `F3` / `Shift+F3`) step through them, `Esc` closes the bar.

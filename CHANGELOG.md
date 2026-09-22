@@ -1,5 +1,21 @@
 ## Version History
 
+### Unreleased - large documents
+
+Opening a 2.3 MB Markdown file took about 16 seconds and every keystroke
+re-rendered the whole document for another ~24 seconds. It is now ~3 seconds to
+open and under ~1.5 seconds per edit.
+
+* Fixed a quadratic loop in the line-anchor plugin used for scroll sync: it
+  copied the whole token array for every anchor it inserted (23 s on a 2.3 MB
+  file, 0.56 s now, with byte-identical output).
+* Incremental rendering: the document is split into top-level blocks and only
+  the blocks that actually changed are sanitized and patched into the page.
+  Everything else keeps its DOM nodes, so the scroll position, rendered Mermaid
+  diagrams and loaded images survive an edit elsewhere in the file.
+* The outline is only rebuilt when the headings changed, and the word count
+  runs when the browser is idle instead of on the render path.
+
 ### Unreleased - preview usability
 
 * Pre-processor program and arguments can be set in the Settings dialog.
