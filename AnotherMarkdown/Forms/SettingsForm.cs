@@ -19,6 +19,8 @@ namespace AnotherMarkdown.Forms
     public bool ShowToolbar { get; set; }
     public bool ShowStatusbar { get; set; }
     public string HtmlFileName { get; set; }
+    public bool ShowOutline { get; set; }
+    public bool EnableThreeStateToggle { get; set; }
 
     public string[] AllowedMarkdownPlugins { get; set; }
 
@@ -40,9 +42,13 @@ namespace AnotherMarkdown.Forms
       ShowToolbar = settings.ShowToolbar;
       ShowStatusbar = settings.ShowStatusbar;
       HtmlFileName = settings.HtmlFileName ?? "";
+      ShowOutline = settings.ShowOutline;
+      EnableThreeStateToggle = settings.EnableThreeStateToggle;
 
       InitializeComponent();
       tbHtmlFile.Text = HtmlFileName;
+      cbShowOutline.Checked = ShowOutline;
+      cbThreeStateToggle.Checked = EnableThreeStateToggle;
 
       tbAssetsPath.Text = AssetsPath;
       trackBar1.Value = ZoomLevel;
@@ -120,6 +126,16 @@ namespace AnotherMarkdown.Forms
     private void btnClearHtmlFile_Click(object sender, EventArgs e)
     {
       tbHtmlFile.Text = "";
+    }
+
+    private void cbShowOutline_CheckedChanged(object sender, EventArgs e)
+    {
+      ShowOutline = cbShowOutline.Checked;
+    }
+
+    private void cbThreeStateToggle_CheckedChanged(object sender, EventArgs e)
+    {
+      EnableThreeStateToggle = cbThreeStateToggle.Checked;
     }
 
     private void btnSave_Click(object sender, EventArgs e)

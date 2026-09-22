@@ -34,7 +34,7 @@ namespace AnotherMarkdown
                 _previewForm.OnEvent.PasteImage += (_, e) => PasteImage(e);
                 _previewForm.OnEvent.Navigate += (_, e) => OpenFile(e);
                 _previewForm.OnEvent.RenderCompleted += (_, e) => RenderCompleted(e);
-                _previewForm.DockClosed += (_, e) => TogglePanelVisible();
+                _previewForm.DockClosed += (_, e) => PanelClosedByUser();
                 _previewForm.SaveAsHtmlAction = () => SaveAsHtml(lightTheme: false);
                 _previewForm.SaveAsHtmlLightAction = () => SaveAsHtml(lightTheme: true);
                 _previewForm.CopyHtmlAction = CopyHtmlToClipboard;
@@ -95,6 +95,8 @@ namespace AnotherMarkdown
       settings.ShowToolbar = PluginUtils.ReadIniBool("Options", "ShowToolbar", _iniFilePath);
       settings.ShowStatusbar = PluginUtils.ReadIniBool("Options", "ShowStatusbar", _iniFilePath);
       settings.HtmlFileName = Win32.ReadIniValue("Options", "HtmlFileName", _iniFilePath, "");
+      settings.ShowOutline = PluginUtils.ReadIniBool("Options", "ShowOutline", _iniFilePath);
+      settings.EnableThreeStateToggle = PluginUtils.ReadIniBool("Options", "EnableThreeStateToggle", _iniFilePath);
       settings.IsDarkModeEnabled = IsDarkModeEnabled();
       return settings;
     }
@@ -199,15 +201,16 @@ namespace AnotherMarkdown
       PluginBase.SetCommand(1, "---", null);
       PluginBase.SetCommand(2, "Synchronize with &caret position", SyncViewWithCaretClicked, _settings.SyncViewWithCaretPosition);
       PluginBase.SetCommand(3, "Synchronize with &first visible line in editor", SyncViewWithFirstVisibleLineClicked, _settings.SyncViewWithFirstVisibleLine);
-      PluginBase.SetCommand(4, "---", null);
-      PluginBase.SetCommand(5, "Save as &HTML...", () => SaveAsHtml(lightTheme: false));
-      PluginBase.SetCommand(6, "Save as HTML (&light theme)...", () => SaveAsHtml(lightTheme: true));
-      PluginBase.SetCommand(7, "&Copy HTML to clipboard", CopyHtmlToClipboard);
-      PluginBase.SetCommand(8, "Export to &PDF...", ExportToPdf);
-      PluginBase.SetCommand(9, "---", null);
-      PluginBase.SetCommand(10, "&Settings", EditSettings);
-      PluginBase.SetCommand(11, "&Help", ShowHelp);
-      PluginBase.SetCommand(12, "&About", ShowAboutDialog);
+      PluginBase.SetCommand(4, "Show &outline", ShowOutlineClicked, _settings.ShowOutline);
+      PluginBase.SetCommand(5, "---", null);
+      PluginBase.SetCommand(6, "Save as &HTML...", () => SaveAsHtml(lightTheme: false));
+      PluginBase.SetCommand(7, "Save as HTML (&light theme)...", () => SaveAsHtml(lightTheme: true));
+      PluginBase.SetCommand(8, "&Copy HTML to clipboard", CopyHtmlToClipboard);
+      PluginBase.SetCommand(9, "Export to &PDF...", ExportToPdf);
+      PluginBase.SetCommand(10, "---", null);
+      PluginBase.SetCommand(11, "&Settings", EditSettings);
+      PluginBase.SetCommand(12, "&Help", ShowHelp);
+      PluginBase.SetCommand(13, "&About", ShowAboutDialog);
       _myDlgId = 0;
     }
 
@@ -222,6 +225,8 @@ namespace AnotherMarkdown
         _settings.ShowToolbar = settingsForm.ShowToolbar;
         _settings.ShowStatusbar = settingsForm.ShowStatusbar;
         _settings.HtmlFileName = settingsForm.HtmlFileName;
+        SetShowOutline(settingsForm.ShowOutline);
+        _settings.EnableThreeStateToggle = settingsForm.EnableThreeStateToggle;
         _settings.EnabledMarkdownPlugins = settingsForm.AllowedMarkdownPlugins;
 
         _settings.IsDarkModeEnabled = IsDarkModeEnabled();
@@ -532,6 +537,22 @@ namespace AnotherMarkdown
       }
     }
 
+    private void ShowOutlineClicked()
+    {
+      SetShowOutline(!_settings.ShowOutline);
+      SaveSettings();
+      if (_isPanelVisible) {
+        RenderMarkdown(force: true);
+      }
+    }
+
+    private void SetShowOutline(bool enabled)
+    {
+      _settings.ShowOutline = enabled;
+      Win32.CheckMenuItem(Win32.GetMenu(PluginBase.nppData._nppHandle), PluginBase._funcItems.Items[4]._cmdID, Win32.MF_BYCOMMAND
+        | (enabled ? Win32.MF_CHECKED : Win32.MF_UNCHECKED));
+    }
+
     private void SetSyncViewWithCaretPosition(bool enabled)
     {
       if (_settings.SyncViewWithCaretPosition == enabled) {
@@ -588,6 +609,8 @@ namespace AnotherMarkdown
       Win32.WriteIniValue("Options", "ShowToolbar", _settings.ShowToolbar.ToString(), _iniFilePath);
       Win32.WriteIniValue("Options", "ShowStatusbar", _settings.ShowStatusbar.ToString(), _iniFilePath);
       Win32.WriteIniValue("Options", "HtmlFileName", _settings.HtmlFileName ?? "", _iniFilePath);
+      Win32.WriteIniValue("Options", "ShowOutline", _settings.ShowOutline.ToString(), _iniFilePath);
+      Win32.WriteIniValue("Options", "EnableThreeStateToggle", _settings.EnableThreeStateToggle.ToString(), _iniFilePath);
     }
 
     private void ShowAboutDialog()
@@ -596,7 +619,41 @@ namespace AnotherMarkdown
       aboutDialog.ShowDialog();
     }
 
+    private enum PanelState { Hidden, Docked, FullWidth }
+
+    // "Toggle Markdown Panel": hidden <-> docked, or with the three-state option
+    // hidden -> docked -> full width -> hidden. Full width keeps the panel docked
+    // and moves the docking splitter so the editor pane collapses.
     private void TogglePanelVisible()
+    {
+      switch (_panelState) {
+        case PanelState.Hidden:
+          ShowPanel();
+          _panelState = PanelState.Docked;
+          break;
+        case PanelState.Docked:
+          if (_settings.EnableThreeStateToggle && GoFullWidth()) {
+            _panelState = PanelState.FullWidth;
+          }
+          else {
+            HidePanel();
+            _panelState = PanelState.Hidden;
+          }
+          break;
+        case PanelState.FullWidth:
+          RestoreFromFullWidth();
+          HidePanel();
+          _panelState = PanelState.Hidden;
+          break;
+      }
+
+      if (_isPanelVisible) {
+        PreviewForm.UpdateSettings(_settings);
+        RenderMarkdown(force: true);
+      }
+    }
+
+    private void ShowPanel()
     {
       if (!_ptrNppTbData.HasValue) {
         var tbData = new NppTbData();
@@ -611,19 +668,78 @@ namespace AnotherMarkdown
         Marshal.StructureToPtr(tbData, _ptrNppTbData.Value, false);
 
         Win32.SendMessage(PluginBase.nppData._nppHandle, (uint) NppMsg.NPPM_DMMREGASDCKDLG, 0, _ptrNppTbData.Value);
-        Win32.SendMessage(PluginBase.nppData._nppHandle, (uint) NppMsg.NPPM_DMMSHOW, 0, PreviewForm.Handle);
-        _isPanelVisible = true;
       }
-      else {
-        _isPanelVisible = !_isPanelVisible;
-        var flag = _isPanelVisible ? NppMsg.NPPM_DMMSHOW : NppMsg.NPPM_DMMHIDE;
-        Win32.SendMessage(PluginBase.nppData._nppHandle, (uint) flag, 0, PreviewForm.Handle);
+      Win32.SendMessage(PluginBase.nppData._nppHandle, (uint) NppMsg.NPPM_DMMSHOW, 0, PreviewForm.Handle);
+      _isPanelVisible = true;
+    }
+
+    private void HidePanel()
+    {
+      if (_ptrNppTbData.HasValue) {
+        Win32.SendMessage(PluginBase.nppData._nppHandle, (uint) NppMsg.NPPM_DMMHIDE, 0, PreviewForm.Handle);
+      }
+      _isPanelVisible = false;
+    }
+
+    // The user closed the panel with its own close button (DMN_CLOSE).
+    private void PanelClosedByUser()
+    {
+      if (_panelState == PanelState.FullWidth) {
+        RestoreFromFullWidth();
+      }
+      _panelState = PanelState.Hidden;
+      _isPanelVisible = false;
+    }
+
+    private bool GoFullWidth()
+    {
+      var nppHandle = PluginBase.nppData._nppHandle;
+      var containerHandle = Win32.GetParent(PreviewForm.Handle);
+      var dockMgrHandle = Win32.FindWindowEx(nppHandle, IntPtr.Zero, Win32.DOCKING_MANAGER_CLASS, null);
+      _fullWidthSplitterHandle = FindSplitterLeftOf(nppHandle, containerHandle);
+      if (dockMgrHandle == IntPtr.Zero || _fullWidthSplitterHandle == IntPtr.Zero) {
+        // Floating, or docked somewhere without a vertical splitter: nothing to do.
+        _fullWidthSplitterHandle = IntPtr.Zero;
+        return false;
       }
 
-      if (_isPanelVisible) {
-        PreviewForm.UpdateSettings(_settings);
-        RenderMarkdown(force: true);
+      Win32.GetClientRect(nppHandle, out RECT nppClient);
+      Win32.GetWindowRect(containerHandle, out RECT containerRect);
+      var currentWidth = containerRect.Right - containerRect.Left;
+      _savedWidthRatio = (double) currentWidth / nppClient.Right;
+      var offset = nppClient.Right - currentWidth - 4;
+      Win32.SendMessage(dockMgrHandle, (uint) DockMgrMsg.DMM_MOVE_SPLITTER, offset, _fullWidthSplitterHandle);
+      return true;
+    }
+
+    private void RestoreFromFullWidth()
+    {
+      var nppHandle = PluginBase.nppData._nppHandle;
+      var dockMgrHandle = Win32.FindWindowEx(nppHandle, IntPtr.Zero, Win32.DOCKING_MANAGER_CLASS, null);
+      if (dockMgrHandle != IntPtr.Zero && _fullWidthSplitterHandle != IntPtr.Zero && _savedWidthRatio > 0) {
+        Win32.GetClientRect(nppHandle, out RECT nppClient);
+        var containerHandle = Win32.GetParent(PreviewForm.Handle);
+        Win32.GetWindowRect(containerHandle, out RECT containerRect);
+        var currentWidth = containerRect.Right - containerRect.Left;
+        var targetWidth = (int) (nppClient.Right * _savedWidthRatio);
+        Win32.SendMessage(dockMgrHandle, (uint) DockMgrMsg.DMM_MOVE_SPLITTER, targetWidth - currentWidth, _fullWidthSplitterHandle);
       }
+      _savedWidthRatio = 0;
+      _fullWidthSplitterHandle = IntPtr.Zero;
+    }
+
+    // The docking splitter whose right edge touches the left edge of our container.
+    private static IntPtr FindSplitterLeftOf(IntPtr nppHandle, IntPtr containerHandle)
+    {
+      Win32.GetWindowRect(containerHandle, out RECT containerRect);
+      var hwnd = IntPtr.Zero;
+      while ((hwnd = Win32.FindWindowEx(nppHandle, hwnd, Win32.VERT_SPLITTER_CLASS, null)) != IntPtr.Zero) {
+        Win32.GetWindowRect(hwnd, out RECT splitterRect);
+        if (splitterRect.Right >= containerRect.Left - 10 && splitterRect.Right <= containerRect.Left + 5) {
+          return hwnd;
+        }
+      }
+      return IntPtr.Zero;
     }
 
     private Icon ConvertBitmapToIcon(Bitmap bitmapImage)
@@ -732,6 +848,9 @@ namespace AnotherMarkdown
     private const int UNUSED = 0;
 
     private bool _isPanelVisible;
+    private PanelState _panelState = PanelState.Hidden;
+    private IntPtr _fullWidthSplitterHandle = IntPtr.Zero;
+    private double _savedWidthRatio;
     private MarkdownPreviewForm _previewForm;
     private object _lock = new object();
     private int _myDlgId = -1;

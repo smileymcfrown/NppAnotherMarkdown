@@ -13,6 +13,8 @@ namespace Webview2Viewer.Web
   internal class ApiService: IWebService
   {
     public string Hostname { get; }
+    // UI state the page wants the host to remember across reloads.
+    public Action<bool> OutlineCollapsedChanged { get; set; }
 
     public ApiService(CoreWebView2Environment environment, string host, IEventDispatcher eventDispatcher, string sessionToken)
     {
@@ -102,6 +104,13 @@ namespace Webview2Viewer.Web
           var value = webEvent.Payload["line"]?.ToObject<int>();
           if (value != null && _on.FirstLineChanged != null) {
             _on.FirstLineChanged(this, new FirstLineChangedEvent { Line = value.Value });
+          }
+          break;
+        }
+        case "outlineCollapsed": {
+          var collapsed = webEvent.Payload["collapsed"]?.ToObject<bool>();
+          if (collapsed != null) {
+            OutlineCollapsedChanged?.Invoke(collapsed.Value);
           }
           break;
         }

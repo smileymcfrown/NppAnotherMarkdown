@@ -5,6 +5,9 @@ export interface IDocumentOptions {
   trackFirstLine: boolean,
   pageYOffset: number|null,
   token: string,
+  darkMode: boolean,
+  outline: boolean,
+  outlineCollapsed: boolean,
   "md.extensions": string[]
 }
 

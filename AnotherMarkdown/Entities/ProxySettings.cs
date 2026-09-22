@@ -11,6 +11,7 @@ namespace AnotherMarkdown.Entities
     public string CssDarkModeFileName => _s.CssDarkModeFileName;
     public int ZoomLevel => _s.ZoomLevel;
     public bool IsDarkModeEnabled => _s.IsDarkModeEnabled;
+    public bool ShowOutline => _s.ShowOutline;
     public bool ShowToolbar => _s.ShowToolbar;
     public bool ShowStatusbar => _s.ShowStatusbar;
     public string DefaultAssetPath => _s.DefaultAssetPath;

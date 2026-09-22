@@ -9,6 +9,7 @@
     string CssDarkModeFileName { get; }
     int ZoomLevel { get; }
     bool IsDarkModeEnabled { get; }
+    bool ShowOutline { get; }
     string DefaultAssetPath { get; }
     string DefaultCssFile { get; }
     string DefaultDarkModeCssFile { get; }

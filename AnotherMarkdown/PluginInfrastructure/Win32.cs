@@ -242,6 +242,22 @@ namespace Kbg.NppPluginNET.PluginInfrastructure
     [DllImport("user32")]
     public static extern bool ClientToScreen(IntPtr hWnd, ref Point lpPoint);
 
+    [DllImport("user32")]
+    public static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
+
+    [DllImport("user32")]
+    public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+    [DllImport("user32")]
+    public static extern IntPtr GetParent(IntPtr hWnd);
+
+    [DllImport("user32", CharSet = CharSet.Unicode)]
+    public static extern IntPtr FindWindowEx(IntPtr hWndParent, IntPtr hWndChildAfter, string lpszClass, string lpszWindow);
+
+    // Window classes of the Notepad++ docking manager and of its splitters.
+    public const string DOCKING_MANAGER_CLASS = "dockingManager";
+    public const string VERT_SPLITTER_CLASS = "wedockspliter";
+
     [DllImport("kernel32")]
     public static extern void OutputDebugString(string lpOutputString);
 

@@ -16,6 +16,9 @@ namespace AnotherMarkdown.Entities
     public bool ShowStatusbar { get; set; }
     // When set, the rendered HTML is written here after every preview update.
     public string HtmlFileName { get; set; }
+    public bool ShowOutline { get; set; }
+    // Toggle command cycles hidden -> docked -> full width (source pane pushed away) -> hidden.
+    public bool EnableThreeStateToggle { get; set; }
     public string[] EnabledMarkdownPlugins { get; set; }
     public string PreProcessorCommandFilename { get; set; }
     public string PreProcessorArguments { get; set; }

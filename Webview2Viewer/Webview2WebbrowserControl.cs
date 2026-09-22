@@ -72,6 +72,7 @@ namespace Webview2Viewer
       AddWebService(webView, fs);
 
       var api = new ApiService(webEnvironment, "api.example", _on, _sessionToken);
+      api.OutlineCollapsedChanged = (collapsed) => _outlineCollapsed = collapsed;
       AddWebService(webView, api);
       return webView;
     }
@@ -129,6 +130,8 @@ namespace Webview2Viewer
       reload = reload || (_lineMark != lineMark);
       reload = reload || (_trackFirstLine != _settings.SyncViewWithFirstVisibleLine);
       reload = reload || (_enabledMarkdownPlugins != string.Join(",", _settings.EnabledMarkdownPlugins));
+      reload = reload || (_showOutline != _settings.ShowOutline);
+      reload = reload || (_darkMode != _settings.IsDarkModeEnabled);
 
       if (_assetPath != assetsPath) {
         await ExecuteWebviewActionAsync((webView) => {
@@ -159,6 +162,8 @@ namespace Webview2Viewer
       _lineMark = lineMark;
       _trackFirstLine = _settings.SyncViewWithFirstVisibleLine;
       _enabledMarkdownPlugins = string.Join(",", _settings.EnabledMarkdownPlugins);
+      _showOutline = _settings.ShowOutline;
+      _darkMode = _settings.IsDarkModeEnabled;
 
       var loader = File.ReadAllText(assetsPath + "/loader.html");
       cssFile = cssFile.Replace("\\", "/");
@@ -188,6 +193,9 @@ namespace Webview2Viewer
           options["pageYOffset"] = pageYOffset;
         }
         options["md.extensions"] = JToken.FromObject(_settings.EnabledMarkdownPlugins);
+        options["darkMode"] = _settings.IsDarkModeEnabled;
+        options["outline"] = _settings.ShowOutline;
+        options["outlineCollapsed"] = _outlineCollapsed;
       }
 
       loader = loader.Replace("__OPTIONS__", JsonConvert.SerializeObject(options));
@@ -484,6 +492,10 @@ namespace Webview2Viewer
     private bool _lineMark;
     private bool _trackFirstLine;
     private string _enabledMarkdownPlugins;
+    private bool _showOutline;
+    private bool _darkMode;
+    // Burger-button state of the outline, reported by the page and handed back on reload.
+    private bool _outlineCollapsed;
 
     private Dictionary<string, double> _preservePosition = new Dictionary<string, double>();
     private List<IWebService> _webServices = new List<IWebService>();

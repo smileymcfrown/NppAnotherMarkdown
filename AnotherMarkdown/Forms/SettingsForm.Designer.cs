@@ -52,6 +52,8 @@
       this.tbHtmlFile = new System.Windows.Forms.TextBox();
       this.btnChooseHtmlFile = new System.Windows.Forms.Button();
       this.btnClearHtmlFile = new System.Windows.Forms.Button();
+      this.cbShowOutline = new System.Windows.Forms.CheckBox();
+      this.cbThreeStateToggle = new System.Windows.Forms.CheckBox();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
@@ -377,12 +379,36 @@
       this.btnClearHtmlFile.UseVisualStyleBackColor = true;
       this.btnClearHtmlFile.Click += new System.EventHandler(this.btnClearHtmlFile_Click);
       //
+      // cbShowOutline
+      //
+      this.cbShowOutline.AutoSize = true;
+      this.cbShowOutline.Location = new System.Drawing.Point(170, 515);
+      this.cbShowOutline.Name = "cbShowOutline";
+      this.cbShowOutline.Size = new System.Drawing.Size(180, 21);
+      this.cbShowOutline.TabIndex = 22;
+      this.cbShowOutline.Text = "Show document outline";
+      this.cbShowOutline.UseVisualStyleBackColor = true;
+      this.cbShowOutline.CheckedChanged += new System.EventHandler(this.cbShowOutline_CheckedChanged);
+      //
+      // cbThreeStateToggle
+      //
+      this.cbThreeStateToggle.AutoSize = true;
+      this.cbThreeStateToggle.Location = new System.Drawing.Point(400, 515);
+      this.cbThreeStateToggle.Name = "cbThreeStateToggle";
+      this.cbThreeStateToggle.Size = new System.Drawing.Size(280, 21);
+      this.cbThreeStateToggle.TabIndex = 23;
+      this.cbThreeStateToggle.Text = "Three-state toggle (docked > full width > hidden)";
+      this.cbThreeStateToggle.UseVisualStyleBackColor = true;
+      this.cbThreeStateToggle.CheckedChanged += new System.EventHandler(this.cbThreeStateToggle_CheckedChanged);
+      //
       // SettingsForm
       //
       this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.CancelButton = this.btnCancel;
       this.ClientSize = new System.Drawing.Size(696, 646);
+      this.Controls.Add(this.cbShowOutline);
+      this.Controls.Add(this.cbThreeStateToggle);
       this.Controls.Add(this.label7);
       this.Controls.Add(this.tbHtmlFile);
       this.Controls.Add(this.btnChooseHtmlFile);
@@ -462,5 +488,7 @@
     private System.Windows.Forms.TextBox tbHtmlFile;
     private System.Windows.Forms.Button btnChooseHtmlFile;
     private System.Windows.Forms.Button btnClearHtmlFile;
+    private System.Windows.Forms.CheckBox cbShowOutline;
+    private System.Windows.Forms.CheckBox cbThreeStateToggle;
   }
 }
