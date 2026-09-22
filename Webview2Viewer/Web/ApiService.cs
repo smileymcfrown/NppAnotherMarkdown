@@ -105,6 +105,12 @@ namespace Webview2Viewer.Web
           }
           break;
         }
+        case "renderCompleted": {
+          _on.RenderCompleted?.Invoke(this, new RenderCompletedEvent {
+            DocumentUri = webEvent.Payload["document"]?.ToString()
+          });
+          break;
+        }
       }
       return NoContent();
     }

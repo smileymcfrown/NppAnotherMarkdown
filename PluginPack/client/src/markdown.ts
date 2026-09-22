@@ -12,6 +12,8 @@ import { MarkdownRenderContext } from './Misc/MarkdownRenderContext';
 import { importCss } from './Misc/DynamicLoad';
 import { setSessionToken } from './Client/Session';
 import { sanitizeMarkdownHtml } from './Misc/Sanitize';
+import { exportDocument } from './Misc/Export';
+import { notifyWebEvent } from './Client/Webevent';
 
 importCss(["markdown/editor.css"]);
 
@@ -103,6 +105,9 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
     context.postRender = [];
   }
   renderCompleted.resolve();
+  // Lets the host know the DOM now holds this version of the document
+  // (used for the automatic HTML output).
+  notifyWebEvent("renderCompleted", { document: sourceUrl }).catch(() => { });
 
   InitBottomSpacer();
   InitDragAndDrop();
@@ -116,5 +121,6 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
 (window as any).viewPlugin = {
   setDocument,
   scrollToLine: ScrollToLine,
+  exportDocument: () => exportDocument(document.getElementById("content")!),
   dispose: () => { }
 } satisfies IViewPlugin;

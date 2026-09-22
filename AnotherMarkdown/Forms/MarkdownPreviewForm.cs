@@ -15,6 +15,12 @@ namespace AnotherMarkdown.Forms
 
     public EventHandler DockClosed { get; set; }
 
+    // Set by the controller; invoked from the toolbar buttons.
+    public Action SaveAsHtmlAction { get; set; }
+    public Action SaveAsHtmlLightAction { get; set; }
+    public Action CopyHtmlAction { get; set; }
+    public Action ExportPdfAction { get; set; }
+
     public static MarkdownPreviewForm Create(Settings settings) { 
       return new MarkdownPreviewForm(settings);
     }
@@ -35,6 +41,29 @@ namespace AnotherMarkdown.Forms
         toolStripStatusLabel1.Text = status;
       };
       _webView = webView;
+
+      InitializeToolbar();
+    }
+
+    private void InitializeToolbar()
+    {
+      var export = new ToolStripDropDownButton("Export") {
+        DisplayStyle = ToolStripItemDisplayStyle.Text,
+        ToolTipText = "Save the preview as HTML or PDF"
+      };
+      export.DropDownItems.Add("Save as HTML...", null, (s, e) => SaveAsHtmlAction?.Invoke());
+      export.DropDownItems.Add("Save as HTML (light theme)...", null, (s, e) => SaveAsHtmlLightAction?.Invoke());
+      export.DropDownItems.Add("Export to PDF...", null, (s, e) => ExportPdfAction?.Invoke());
+
+      var copy = new ToolStripButton("Copy HTML") {
+        DisplayStyle = ToolStripItemDisplayStyle.Text,
+        ToolTipText = "Copy the preview to the clipboard as formatted text (HTML)"
+      };
+      copy.Click += (s, e) => CopyHtmlAction?.Invoke();
+
+      tbPreview.Items.Add(export);
+      tbPreview.Items.Add(new ToolStripSeparator());
+      tbPreview.Items.Add(copy);
     }
 
     public void UpdateSettings(Settings settings)
@@ -60,6 +89,16 @@ namespace AnotherMarkdown.Forms
       if (_webView != null) {
         await _webView.SetContentAsync(currentText, filepath);
       }
+    }
+
+    public Task<string> ExportHtmlAsync(bool lightTheme)
+    {
+      return _webView != null ? _webView.ExportHtmlAsync(lightTheme) : Task.FromResult<string>(null);
+    }
+
+    public Task<bool> ExportPdfAsync(string filePath)
+    {
+      return _webView != null ? _webView.ExportPdfAsync(filePath) : Task.FromResult(false);
     }
 
     public async Task ScrollToElementWithLineNo(int lineNo)

@@ -15,6 +15,7 @@ using AnotherMarkdown.Properties;
 using DiffPlex;
 using Kbg.NppPluginNET.PluginInfrastructure;
 using PanelCommon;
+using TheArtOfDev.HtmlRenderer.WinForms.Utilities;
 
 namespace AnotherMarkdown
 {
@@ -32,7 +33,12 @@ namespace AnotherMarkdown
                 _previewForm.OnEvent.FirstLineChanged += (_, e) => FirstLineChanged(e);
                 _previewForm.OnEvent.PasteImage += (_, e) => PasteImage(e);
                 _previewForm.OnEvent.Navigate += (_, e) => OpenFile(e);
+                _previewForm.OnEvent.RenderCompleted += (_, e) => RenderCompleted(e);
                 _previewForm.DockClosed += (_, e) => TogglePanelVisible();
+                _previewForm.SaveAsHtmlAction = () => SaveAsHtml(lightTheme: false);
+                _previewForm.SaveAsHtmlLightAction = () => SaveAsHtml(lightTheme: true);
+                _previewForm.CopyHtmlAction = CopyHtmlToClipboard;
+                _previewForm.ExportPdfAction = ExportToPdf;
               }
               catch (Exception ex) {
                 Console.WriteLine(ex.ToString());
@@ -88,6 +94,7 @@ namespace AnotherMarkdown
       settings.ZoomLevel = Win32.GetPrivateProfileInt("Options", "ZoomLevel", 130, _iniFilePath);
       settings.ShowToolbar = PluginUtils.ReadIniBool("Options", "ShowToolbar", _iniFilePath);
       settings.ShowStatusbar = PluginUtils.ReadIniBool("Options", "ShowStatusbar", _iniFilePath);
+      settings.HtmlFileName = Win32.ReadIniValue("Options", "HtmlFileName", _iniFilePath, "");
       settings.IsDarkModeEnabled = IsDarkModeEnabled();
       return settings;
     }
@@ -193,9 +200,14 @@ namespace AnotherMarkdown
       PluginBase.SetCommand(2, "Synchronize with &caret position", SyncViewWithCaretClicked, _settings.SyncViewWithCaretPosition);
       PluginBase.SetCommand(3, "Synchronize with &first visible line in editor", SyncViewWithFirstVisibleLineClicked, _settings.SyncViewWithFirstVisibleLine);
       PluginBase.SetCommand(4, "---", null);
-      PluginBase.SetCommand(5, "&Settings", EditSettings);
-      PluginBase.SetCommand(6, "&Help", ShowHelp);
-      PluginBase.SetCommand(7, "&About", ShowAboutDialog);
+      PluginBase.SetCommand(5, "Save as &HTML...", () => SaveAsHtml(lightTheme: false));
+      PluginBase.SetCommand(6, "Save as HTML (&light theme)...", () => SaveAsHtml(lightTheme: true));
+      PluginBase.SetCommand(7, "&Copy HTML to clipboard", CopyHtmlToClipboard);
+      PluginBase.SetCommand(8, "Export to &PDF...", ExportToPdf);
+      PluginBase.SetCommand(9, "---", null);
+      PluginBase.SetCommand(10, "&Settings", EditSettings);
+      PluginBase.SetCommand(11, "&Help", ShowHelp);
+      PluginBase.SetCommand(12, "&About", ShowAboutDialog);
       _myDlgId = 0;
     }
 
@@ -209,6 +221,7 @@ namespace AnotherMarkdown
         _settings.ZoomLevel = settingsForm.ZoomLevel;
         _settings.ShowToolbar = settingsForm.ShowToolbar;
         _settings.ShowStatusbar = settingsForm.ShowStatusbar;
+        _settings.HtmlFileName = settingsForm.HtmlFileName;
         _settings.EnabledMarkdownPlugins = settingsForm.AllowedMarkdownPlugins;
 
         _settings.IsDarkModeEnabled = IsDarkModeEnabled();
@@ -220,6 +233,131 @@ namespace AnotherMarkdown
         }
       }
     }
+
+    #region Export
+
+    private bool EnsurePreviewForExport()
+    {
+      if (!_isPanelVisible) {
+        MessageBox.Show("Open the Markdown preview panel first.", Main.PluginTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+        return false;
+      }
+      return true;
+    }
+
+    private string SuggestedExportName(string extension)
+    {
+      var current = _nppGateway.GetCurrentFilePath();
+      var name = Path.GetFileNameWithoutExtension(current);
+      return (string.IsNullOrEmpty(name) ? "markdown" : name) + extension;
+    }
+
+    private string SuggestedExportDirectory()
+    {
+      var current = _nppGateway.GetCurrentFilePath();
+      var dir = Path.GetDirectoryName(current);
+      return (!string.IsNullOrEmpty(dir) && Directory.Exists(dir)) ? dir : "";
+    }
+
+    private async void SaveAsHtml(bool lightTheme)
+    {
+      if (!EnsurePreviewForExport()) {
+        return;
+      }
+      string fileName;
+      using (var dialog = new SaveFileDialog()) {
+        dialog.Title = lightTheme ? "Save as HTML (light theme)" : "Save as HTML";
+        dialog.Filter = "HTML files (*.html)|*.html|All files (*.*)|*.*";
+        dialog.DefaultExt = "html";
+        dialog.AddExtension = true;
+        dialog.RestoreDirectory = true;
+        dialog.InitialDirectory = SuggestedExportDirectory();
+        dialog.FileName = SuggestedExportName(".html");
+        if (dialog.ShowDialog() != DialogResult.OK) {
+          return;
+        }
+        fileName = dialog.FileName;
+      }
+      try {
+        var html = await PreviewForm.ExportHtmlAsync(lightTheme);
+        if (html == null) {
+          MessageBox.Show("Nothing to export: the preview is empty or the current document is not a Markdown file.", Main.PluginTitle, MessageBoxButtons.OK, MessageBoxIcon.Information);
+          return;
+        }
+        File.WriteAllText(fileName, html, new UTF8Encoding(false));
+      }
+      catch (Exception ex) {
+        MessageBox.Show("Could not save the HTML file:\n" + ex.Message, Main.PluginTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+    }
+
+    private async void CopyHtmlToClipboard()
+    {
+      if (!EnsurePreviewForExport()) {
+        return;
+      }
+      try {
+        var html = await PreviewForm.ExportHtmlAsync(lightTheme: true);
+        if (html == null) {
+          return;
+        }
+        // CF_HTML for applications that paste formatted text (Word, Outlook, ...),
+        // plus the raw HTML as plain text for editors.
+        ClipboardHelper.CopyToClipboard(html, html);
+      }
+      catch (Exception ex) {
+        MessageBox.Show("Could not copy to the clipboard:\n" + ex.Message, Main.PluginTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+    }
+
+    private async void ExportToPdf()
+    {
+      if (!EnsurePreviewForExport()) {
+        return;
+      }
+      string fileName;
+      using (var dialog = new SaveFileDialog()) {
+        dialog.Title = "Export to PDF";
+        dialog.Filter = "PDF files (*.pdf)|*.pdf|All files (*.*)|*.*";
+        dialog.DefaultExt = "pdf";
+        dialog.AddExtension = true;
+        dialog.RestoreDirectory = true;
+        dialog.InitialDirectory = SuggestedExportDirectory();
+        dialog.FileName = SuggestedExportName(".pdf");
+        if (dialog.ShowDialog() != DialogResult.OK) {
+          return;
+        }
+        fileName = dialog.FileName;
+      }
+      try {
+        if (!await PreviewForm.ExportPdfAsync(fileName)) {
+          MessageBox.Show("The PDF could not be written.", Main.PluginTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+      }
+      catch (Exception ex) {
+        MessageBox.Show("Could not export the PDF:\n" + ex.Message, Main.PluginTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+    }
+
+    // Automatic HTML output: after every render, write the preview to the configured file.
+    private async void RenderCompleted(RenderCompletedEvent args)
+    {
+      var target = _settings.HtmlFileName;
+      if (string.IsNullOrWhiteSpace(target) || _disposedValue) {
+        return;
+      }
+      try {
+        var html = await PreviewForm.ExportHtmlAsync(lightTheme: false);
+        if (html != null) {
+          File.WriteAllText(target, html, new UTF8Encoding(false));
+        }
+      }
+      catch (Exception) {
+        // A bad path or a locked file must never disturb the preview itself.
+      }
+    }
+
+    #endregion
 
     private void OpenFile(NavigateToEvent args)
     {
@@ -449,6 +587,7 @@ namespace AnotherMarkdown
       Win32.WriteIniValue("Options", "ZoomLevel", _settings.ZoomLevel.ToString(), _iniFilePath);
       Win32.WriteIniValue("Options", "ShowToolbar", _settings.ShowToolbar.ToString(), _iniFilePath);
       Win32.WriteIniValue("Options", "ShowStatusbar", _settings.ShowStatusbar.ToString(), _iniFilePath);
+      Win32.WriteIniValue("Options", "HtmlFileName", _settings.HtmlFileName ?? "", _iniFilePath);
     }
 
     private void ShowAboutDialog()

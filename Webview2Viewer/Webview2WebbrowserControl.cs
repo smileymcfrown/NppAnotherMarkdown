@@ -5,7 +5,11 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
@@ -192,6 +196,131 @@ namespace Webview2Viewer
       await SetZoomLevel(_settings.ZoomLevel);
     }
 
+    /// <summary>
+    /// Standalone HTML of the current preview: the rendered body with every
+    /// stylesheet inlined and resource URLs rewritten to file://, so the file can be
+    /// opened from anywhere. Returns null when nothing is rendered yet or the current
+    /// view plugin (e.g. the pano360 editor) has nothing to export.
+    /// </summary>
+    /// <param name="lightTheme">Use the light stylesheet even while dark mode is active.</param>
+    public async Task<string> ExportHtmlAsync(bool lightTheme)
+    {
+      const string script = "(function(){try{return window.exportDocument?JSON.stringify(window.exportDocument()):null;}catch(e){return null;}})()";
+      var result = await ExecuteWebviewFuncAsync((webView) => webView.ExecuteScriptAsync(script));
+      if (string.IsNullOrEmpty(result) || result == "null") {
+        return null;
+      }
+      var snapshot = JObject.Parse(JsonConvert.DeserializeObject<string>(result));
+
+      var title = snapshot["title"]?.ToString() ?? "";
+      var body = MapVirtualHostsToFileUris(snapshot["body"]?.ToString() ?? "");
+
+      var lightCss = File.Exists(_settings.CssFileName) ? _settings.CssFileName : _settings.DefaultCssFile;
+      var head = new StringBuilder();
+      foreach (var style in snapshot["styles"] ?? new JArray()) {
+        var text = style["text"]?.ToString();
+        if (text != null) {
+          head.Append("<style>\n").Append(text).Append("\n</style>\n");
+          continue;
+        }
+        var href = style["href"]?.ToString();
+        if (string.IsNullOrEmpty(href)) {
+          continue;
+        }
+        var cssPath = VirtualHostUriToPath(href);
+        if (cssPath == null) {
+          head.Append("<link rel=\"stylesheet\" href=\"").Append(WebUtility.HtmlEncode(href)).Append("\">\n");
+          continue;
+        }
+        if (lightTheme && _cssFile != null && PathEquals(cssPath, _cssFile)) {
+          cssPath = lightCss;
+        }
+        if (!File.Exists(cssPath)) {
+          continue;
+        }
+        var css = InlineCssUrls(File.ReadAllText(cssPath), Path.GetDirectoryName(cssPath));
+        head.Append("<style>\n").Append(css).Append("\n</style>\n");
+      }
+
+      return "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n"
+        + "<meta name=\"generator\" content=\"AnotherMarkdown for Notepad++\">\n"
+        + "<title>" + WebUtility.HtmlEncode(title) + "</title>\n"
+        + head
+        + "</head>\n<body>\n<div id=\"content\">\n"
+        + body
+        + "\n</div>\n</body>\n</html>\n";
+    }
+
+    public async Task<bool> ExportPdfAsync(string filePath)
+    {
+      return await ExecuteWebviewFuncAsync((webView) => webView.CoreWebView2.PrintToPdfAsync(filePath, null));
+    }
+
+    // http://local.example/diskD/docs/x.png -> file:///D:/docs/x.png
+    // http://assets.example/markdown/x.css  -> file:///<assets>/markdown/x.css
+    private string MapVirtualHostsToFileUris(string html)
+    {
+      return Regex.Replace(html, @"http://(local|assets)\.example/[^""'\s<>)]*", m => {
+        var path = VirtualHostUriToPath(m.Value);
+        if (path == null) {
+          return m.Value;
+        }
+        try {
+          // AbsolutePath (used for the disk path) drops the fragment; keep "#section".
+          var fragment = Uri.TryCreate(m.Value, UriKind.Absolute, out var original) ? original.Fragment : "";
+          return new Uri(path).AbsoluteUri + fragment;
+        }
+        catch (Exception) {
+          return m.Value;
+        }
+      });
+    }
+
+    private string VirtualHostUriToPath(string uriText)
+    {
+      if (!Uri.TryCreate(uriText, UriKind.Absolute, out var uri)) {
+        return null;
+      }
+      var assetsPath = _assetPath ?? _settings.DefaultAssetPath;
+      switch (uri.DnsSafeHost) {
+        case "local.example":
+          return HttpUtility2.UriToPath(uri.AbsolutePath).Replace('/', '\\');
+        case "assets.example":
+          return Path.Combine(assetsPath, HttpUtility.UrlDecode(uri.AbsolutePath).TrimStart('/')).Replace('/', '\\');
+        default:
+          return null;
+      }
+    }
+
+    // Fonts and images referenced relatively from a stylesheet (JetBrains Mono,
+    // KaTeX fonts, ...) would break once the CSS is inlined into a file elsewhere.
+    private static string InlineCssUrls(string css, string cssDirectory)
+    {
+      return Regex.Replace(css, @"url\(\s*(['""]?)(?!data:|https?:|file:|//)([^'"")]+)\1\s*\)", m => {
+        var reference = m.Groups[2].Value.Trim();
+        var suffixAt = reference.IndexOfAny(new[] { '?', '#' });
+        var suffix = suffixAt >= 0 ? reference.Substring(suffixAt) : "";
+        var relative = suffixAt >= 0 ? reference.Substring(0, suffixAt) : reference;
+        try {
+          var absolute = Path.GetFullPath(Path.Combine(cssDirectory, HttpUtility.UrlDecode(relative)));
+          return "url(\"" + new Uri(absolute).AbsoluteUri + suffix + "\")";
+        }
+        catch (Exception) {
+          return m.Value;
+        }
+      });
+    }
+
+    private static bool PathEquals(string a, string b)
+    {
+      try {
+        return string.Equals(Path.GetFullPath(a), Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase);
+      }
+      catch (Exception) {
+        return false;
+      }
+    }
+
     public async Task SetZoomLevel(int zoomLevel)
     {
       double zoomFactor = ConvertToZoomFactor(zoomLevel);
@@ -293,6 +422,27 @@ namespace Webview2Viewer
         }
       }
       catch (Exception) { }
+    }
+
+    private async Task<T> ExecuteWebviewFuncAsync<T>(Func<WebView2, Task<T>> func)
+    {
+      try {
+        if (_webView != null) {
+          var webView = await _webView;
+          var tcs = new TaskCompletionSource<T>();
+          webView.BeginInvoke(new Action(async () => {
+            try {
+              tcs.SetResult(await func(webView));
+            }
+            catch (Exception ex) {
+              tcs.SetException(ex);
+            }
+          }));
+          return await tcs.Task;
+        }
+      }
+      catch (Exception) { }
+      return default(T);
     }
 
     private async Task ExecuteWebviewActionAsync(Func<WebView2, Task> action)

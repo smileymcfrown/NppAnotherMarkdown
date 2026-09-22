@@ -84,6 +84,7 @@
     <Compile Include="Entities\EventDispatcher.cs" />
     <Compile Include="Entities\ProxySettings.cs" />
     <Compile Include="Entities\Settings.cs" />
+    <Compile Include="Forms\ClipboardHelper.cs" />
     <Compile Include="Forms\AboutForm.cs">
       <SubType>Form</SubType>
     </Compile>

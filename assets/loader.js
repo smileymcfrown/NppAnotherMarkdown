@@ -41,6 +41,7 @@
       await documentChanged(false);
       return {
         scrollToLine: viewPlugin.scrollToLine,
+        exportDocument: viewPlugin.exportDocument,
         documentChanged,
         dispose: () => { }
       }

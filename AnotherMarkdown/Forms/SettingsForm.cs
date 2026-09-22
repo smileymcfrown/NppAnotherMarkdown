@@ -18,6 +18,7 @@ namespace AnotherMarkdown.Forms
     public string CssDarkModeFileName { get; set; }
     public bool ShowToolbar { get; set; }
     public bool ShowStatusbar { get; set; }
+    public string HtmlFileName { get; set; }
 
     public string[] AllowedMarkdownPlugins { get; set; }
 
@@ -38,8 +39,10 @@ namespace AnotherMarkdown.Forms
 
       ShowToolbar = settings.ShowToolbar;
       ShowStatusbar = settings.ShowStatusbar;
+      HtmlFileName = settings.HtmlFileName ?? "";
 
       InitializeComponent();
+      tbHtmlFile.Text = HtmlFileName;
 
       tbAssetsPath.Text = AssetsPath;
       trackBar1.Value = ZoomLevel;
@@ -80,6 +83,43 @@ namespace AnotherMarkdown.Forms
     private void tbDarkmodeCssFile_TextChanged(object sender, EventArgs e)
     {
       CssDarkModeFileName = tbDarkmodeCssFile.Text;
+    }
+
+    private void tbHtmlFile_TextChanged(object sender, EventArgs e)
+    {
+      HtmlFileName = tbHtmlFile.Text.Trim();
+      var dir = "";
+      try {
+        dir = string.IsNullOrEmpty(HtmlFileName) ? "" : Path.GetDirectoryName(Path.GetFullPath(HtmlFileName));
+      }
+      catch (Exception) {
+        dir = null;
+      }
+      sblInvalidHtmlPath.Text = (dir == null || (dir != "" && !Directory.Exists(dir)))
+        ? "Automatic HTML output: the folder does not exist."
+        : "";
+    }
+
+    private void btnChooseHtmlFile_Click(object sender, EventArgs e)
+    {
+      using (var dialog = new SaveFileDialog()) {
+        dialog.Title = "Automatic HTML output file";
+        dialog.Filter = "HTML files (*.html)|*.html|All files (*.*)|*.*";
+        dialog.DefaultExt = "html";
+        dialog.OverwritePrompt = false;
+        dialog.RestoreDirectory = true;
+        if (!string.IsNullOrEmpty(HtmlFileName)) {
+          dialog.FileName = HtmlFileName;
+        }
+        if (dialog.ShowDialog() == DialogResult.OK) {
+          tbHtmlFile.Text = dialog.FileName;
+        }
+      }
+    }
+
+    private void btnClearHtmlFile_Click(object sender, EventArgs e)
+    {
+      tbHtmlFile.Text = "";
     }
 
     private void btnSave_Click(object sender, EventArgs e)

@@ -14,6 +14,8 @@ namespace AnotherMarkdown.Entities
     public bool IsDarkModeEnabled { get; set; }
     public bool ShowToolbar { get; set; }
     public bool ShowStatusbar { get; set; }
+    // When set, the rendered HTML is written here after every preview update.
+    public string HtmlFileName { get; set; }
     public string[] EnabledMarkdownPlugins { get; set; }
     public string PreProcessorCommandFilename { get; set; }
     public string PreProcessorArguments { get; set; }

@@ -11,5 +11,7 @@ export interface IDocumentOptions {
 export interface IViewPlugin {
   setDocument(container: HTMLElement, args: Partial<IDocumentOptions>): void;
   scrollToLine(nline: number): void;
+  // Optional: snapshot of the rendered document for Save-as-HTML / clipboard.
+  exportDocument?(): unknown;
   dispose(): void;
 }

@@ -48,6 +48,10 @@
       this.tbAssetsPath = new System.Windows.Forms.TextBox();
       this.MarkdownPlugins = new System.Windows.Forms.CheckedListBox();
       this.label5 = new System.Windows.Forms.Label();
+      this.label7 = new System.Windows.Forms.Label();
+      this.tbHtmlFile = new System.Windows.Forms.TextBox();
+      this.btnChooseHtmlFile = new System.Windows.Forms.Button();
+      this.btnClearHtmlFile = new System.Windows.Forms.Button();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
@@ -331,13 +335,58 @@
       this.label5.Size = new System.Drawing.Size(118, 17);
       this.label5.TabIndex = 31;
       this.label5.Text = "Markdown Plugins:";
-      // 
+      //
+      // label7
+      //
+      this.label7.AutoSize = true;
+      this.label7.Location = new System.Drawing.Point(12, 482);
+      this.label7.Name = "label7";
+      this.label7.Size = new System.Drawing.Size(150, 17);
+      this.label7.TabIndex = 32;
+      this.label7.Text = "Automatic HTML output:";
+      //
+      // tbHtmlFile
+      //
+      this.tbHtmlFile.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.tbHtmlFile.Location = new System.Drawing.Point(170, 479);
+      this.tbHtmlFile.Name = "tbHtmlFile";
+      this.tbHtmlFile.Size = new System.Drawing.Size(386, 25);
+      this.tbHtmlFile.TabIndex = 17;
+      this.tbHtmlFile.TextChanged += new System.EventHandler(this.tbHtmlFile_TextChanged);
+      //
+      // btnChooseHtmlFile
+      //
+      this.btnChooseHtmlFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.btnChooseHtmlFile.Location = new System.Drawing.Point(562, 477);
+      this.btnChooseHtmlFile.Name = "btnChooseHtmlFile";
+      this.btnChooseHtmlFile.Size = new System.Drawing.Size(39, 25);
+      this.btnChooseHtmlFile.TabIndex = 18;
+      this.btnChooseHtmlFile.Text = "...";
+      this.btnChooseHtmlFile.UseVisualStyleBackColor = true;
+      this.btnChooseHtmlFile.Click += new System.EventHandler(this.btnChooseHtmlFile_Click);
+      //
+      // btnClearHtmlFile
+      //
+      this.btnClearHtmlFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.btnClearHtmlFile.Location = new System.Drawing.Point(607, 477);
+      this.btnClearHtmlFile.Name = "btnClearHtmlFile";
+      this.btnClearHtmlFile.Size = new System.Drawing.Size(73, 26);
+      this.btnClearHtmlFile.TabIndex = 19;
+      this.btnClearHtmlFile.Text = "Off";
+      this.btnClearHtmlFile.UseVisualStyleBackColor = true;
+      this.btnClearHtmlFile.Click += new System.EventHandler(this.btnClearHtmlFile_Click);
+      //
       // SettingsForm
-      // 
+      //
       this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.CancelButton = this.btnCancel;
       this.ClientSize = new System.Drawing.Size(696, 646);
+      this.Controls.Add(this.label7);
+      this.Controls.Add(this.tbHtmlFile);
+      this.Controls.Add(this.btnChooseHtmlFile);
+      this.Controls.Add(this.btnClearHtmlFile);
       this.Controls.Add(this.label5);
       this.Controls.Add(this.MarkdownPlugins);
       this.Controls.Add(this.btnDefaultAssetDir);
@@ -409,5 +458,9 @@
     private System.Windows.Forms.TextBox tbAssetsPath;
     private System.Windows.Forms.CheckedListBox MarkdownPlugins;
     private System.Windows.Forms.Label label5;
+    private System.Windows.Forms.Label label7;
+    private System.Windows.Forms.TextBox tbHtmlFile;
+    private System.Windows.Forms.Button btnChooseHtmlFile;
+    private System.Windows.Forms.Button btnClearHtmlFile;
   }
 }

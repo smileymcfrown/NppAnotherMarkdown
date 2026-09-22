@@ -8,5 +8,6 @@ namespace PanelCommon
     EventHandler<FirstLineChangedEvent> FirstLineChanged { get; }
     EventHandler<PasteImageEvent> PasteImage { get; }
     EventHandler<NavigateToEvent> Navigate { get; set; }
+    EventHandler<RenderCompletedEvent> RenderCompleted { get; }
   }
 }
