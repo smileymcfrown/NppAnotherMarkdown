@@ -9,7 +9,8 @@
   align-items: flex-start;
 }
 
-input.task-list-item-checkbox {
+input.task-list-item-checkbox,
+input.radio-list-item-radio {
   display: inline-block;
   margin-top: 2px;
 }

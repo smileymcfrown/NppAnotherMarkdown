@@ -84,6 +84,6 @@
     "title": "tab: block-level custom tabs"
   },
   "tasks-list": {
-    "title": "tasks-list: support tasklists with checkboxes"
+    "title": "tasks-list: editable task lists - [ ] / [x] checkboxes and ( ) / (x) radio buttons"
   }
 }

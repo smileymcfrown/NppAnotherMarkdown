@@ -2,6 +2,10 @@
 
 ### Unreleased - panel and file-type features
 
+* Radio-button lists (part of the `tasks-list` extension): `- ( ) option` /
+  `- (x) option` items render as radio buttons; picking one clears the others in
+  the same list and updates the Markdown, clicking the selected one clears it.
+
 * Document outline sidebar (Settings / plugin menu "Show outline"): heading list
   with click-to-scroll, current heading highlighted, burger button to collapse.
 * Three-state toggle (Settings): hidden -> docked -> full width -> hidden.

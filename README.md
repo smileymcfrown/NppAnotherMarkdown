@@ -137,6 +137,10 @@ To open the settings for this plugin: Plugins -> AnotherMarkdown -> Settings
 * #### Export to PDF...
     Prints the current preview to a PDF file.
 
+### Editable task lists and radio lists
+
+With the `tasks-list` extension enabled, `- [ ]` / `- [x]` items render as checkboxes and `- ( )` / `- (x)` items as radio buttons. Clicking them updates the Markdown in the editor. Radio buttons of one list form a group: selecting one clears the others; clicking the selected one clears it.
+
 ### Pre-processor (ini only)
 
 A command line can be configured in `plugins\Config\AnotherMarkdown.ini` that rewrites the Markdown before it is rendered (e.g. to expand custom macros). `%inputfile%` and `%outputfile%` are replaced with temporary file names; the command must write the result to `%outputfile%`. An example C# project is in `misc\PPExtensions`.

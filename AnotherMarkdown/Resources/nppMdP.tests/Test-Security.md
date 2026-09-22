@@ -86,6 +86,9 @@ All four must report `403`. (Requests made by the page itself carry the
 - [ ] clicking this checkbox toggles `[ ]` / `[x]` in the editor (PUT with token)
 - [x] and back again
 
+- ( ) radio one - selecting it must clear the other
+- (x) radio two
+
 Paste an image from the clipboard or drag one into the preview: it must be saved
 into `./img/` next to this file and `![](img/....)` inserted at the caret.
 

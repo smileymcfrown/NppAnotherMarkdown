@@ -27,6 +27,7 @@ import MarkdownItPluginHighlightJs from 'highlight.js'
 
 import MarkdownIt from 'markdown-it'
 import markdownItTaskLists from './markdown-it-task-lists'
+import markdownItRadioLists from './markdown-it-radio-lists'
 import markdownItEmbedQrcode from './markdown-it-embed-qrcode'
 import markdownItEmbedPano360 from './markdown-it-embed-pano360'
 import markdownItMermaid from './markdown-it-mermaid'
@@ -85,6 +86,7 @@ export async function markdownItPluginPack(enabled: string[], md: MarkdownIt) {
   }
   if (enabled.includes("tasks-list")) {
     md.use(markdownItTaskLists);
+    md.use(markdownItRadioLists);
   }
   if (enabled.includes("abbr")) {
     md.use(abbr, {});
