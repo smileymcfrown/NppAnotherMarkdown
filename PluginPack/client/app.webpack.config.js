@@ -15,6 +15,7 @@ function moduleResolve(file) {
 
 module.exports = function() {
   const outDir = path.resolve(__dirname, '../dist/js');
+  fs.mkdirSync(outDir, { recursive: true });
   const modules = [
     "mermaid/dist/mermaid.min.js",
   ];
