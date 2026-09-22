@@ -15,6 +15,7 @@ import { sanitizeMarkdownHtml } from './Misc/Sanitize';
 import { exportDocument } from './Misc/Export';
 import { notifyWebEvent } from './Client/Webevent';
 import { InitOutline, RefreshOutline } from './Misc/Outline';
+import { InitStatusBar } from './Misc/StatusBar';
 
 importCss(["markdown/editor.css"]);
 
@@ -122,6 +123,7 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
   InitBottomSpacer();
   InitDragAndDrop();
   InitPasteContent();
+  InitStatusBar();
 
   if (!options.modified && options.pageYOffset && options.pageYOffset !== 0) {
     ScrollToPageY(options.pageYOffset);

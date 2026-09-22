@@ -85,10 +85,12 @@ namespace AnotherMarkdown
         .Select(li => li.Trim())
         .ToArray();
 
+      // Ini only (no UI), as in NppMarkdownPanel: a command line that rewrites the
+      // Markdown before it is rendered. %inputfile% / %outputfile% are replaced
+      // with temporary file names. A post-processor makes no sense here because the
+      // HTML is produced inside the WebView.
       settings.PreProcessorCommandFilename = Win32.ReadIniValue("Options", "PreProcessorExe", _iniFilePath, "");
       settings.PreProcessorArguments = Win32.ReadIniValue("Options", "PreProcessorArguments", _iniFilePath, "");
-      settings.PostProcessorCommandFilename = Win32.ReadIniValue("Options", "PostProcessorExe", _iniFilePath, "");
-      settings.PostProcessorArguments = Win32.ReadIniValue("Options", "PostProcessorArguments", _iniFilePath, "");
       settings.AssetsPath = Win32.ReadIniValue("Options", "AssetsPath", _iniFilePath, "");
       settings.CssFileName = Win32.ReadIniValue("Options", "CssFileName", _iniFilePath, "style.css");
       settings.CssDarkModeFileName = Win32.ReadIniValue("Options", "CssDarkModeFileName", _iniFilePath, "style-dark.css");
@@ -647,6 +649,40 @@ namespace AnotherMarkdown
       aboutDialog.ShowDialog();
     }
 
+    private string RunPreProcessor(string markdown)
+    {
+      var command = _settings.PreProcessorCommandFilename;
+      var arguments = _settings.PreProcessorArguments ?? "";
+      var inputFile = Path.GetTempFileName();
+      var outputFile = Path.GetTempFileName();
+      try {
+        File.WriteAllText(inputFile, markdown, new UTF8Encoding(false));
+        var startInfo = new System.Diagnostics.ProcessStartInfo {
+          FileName = command,
+          Arguments = arguments
+            .Replace("%inputfile%", "\"" + inputFile + "\"")
+            .Replace("%outputfile%", "\"" + outputFile + "\""),
+          UseShellExecute = false,
+          CreateNoWindow = true,
+          WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden
+        };
+        using (var process = System.Diagnostics.Process.Start(startInfo)) {
+          if (!process.WaitForExit(30000)) {
+            try { process.Kill(); } catch (Exception) { }
+            return "**AnotherMarkdown:** the pre-processor did not finish within 30 seconds.\n\n" + markdown;
+          }
+        }
+        return File.Exists(outputFile) ? File.ReadAllText(outputFile) : markdown;
+      }
+      catch (Exception e) {
+        return "**AnotherMarkdown:** error running the pre-processor `" + command + "`: " + e.Message + "\n\n" + markdown;
+      }
+      finally {
+        try { File.Delete(inputFile); } catch (Exception) { }
+        try { File.Delete(outputFile); } catch (Exception) { }
+      }
+    }
+
     private bool IsSupportedFile(string path)
     {
       if (string.IsNullOrEmpty(path)) {
@@ -872,6 +908,11 @@ namespace AnotherMarkdown
 
           var currentFile = _nppGateway.GetCurrentFilePath();
           _currentFile = currentFile;
+
+          if (!string.IsNullOrEmpty(_settings.PreProcessorCommandFilename)) {
+            var input = currentText;
+            currentText = await Task.Run(() => RunPreProcessor(input));
+          }
 
           await PreviewForm.RenderMarkdown(currentText, currentFile, ClassifyDocument(currentFile), _settings.SupportedFileExt);
         }

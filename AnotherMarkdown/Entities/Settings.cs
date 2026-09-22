@@ -30,8 +30,6 @@ namespace AnotherMarkdown.Entities
     public string[] EnabledMarkdownPlugins { get; set; }
     public string PreProcessorCommandFilename { get; set; }
     public string PreProcessorArguments { get; set; }
-    public string PostProcessorCommandFilename { get; set; }
-    public string PostProcessorArguments { get; set; }
 
     public string DefaultAssetPath
     {

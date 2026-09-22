@@ -67,6 +67,7 @@ namespace Webview2Viewer
       webView.CoreWebView2.NewWindowRequested += OnWebBrowser_NewWindowRequested;
       webView.ZoomFactor = ConvertToZoomFactor(_settings.ZoomLevel);
       webView.CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
+      webView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
 
       var fs = new LocalFileService(webEnvironment, "local.example", _on, _sessionToken);
       AddWebService(webView, fs);
@@ -93,6 +94,20 @@ namespace Webview2Viewer
           }
         }
       }
+    }
+
+    // Fire-and-forget UI hints from the page (chrome.webview.postMessage).
+    private void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
+    {
+      try {
+        var message = JObject.Parse(e.WebMessageAsJson);
+        switch (message["event"]?.ToString()) {
+          case "statusText":
+            StatusTextChangedAction?.Invoke(message["text"]?.ToString() ?? "");
+            break;
+        }
+      }
+      catch (Exception) { }
     }
 
     public void AddToHost(Control host)
