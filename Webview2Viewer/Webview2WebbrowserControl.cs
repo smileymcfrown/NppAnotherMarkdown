@@ -60,6 +60,7 @@ namespace Webview2Viewer
       webView.Dock = DockStyle.Fill;
       webView.TabIndex = 0;
       webView.NavigationStarting += OnWebBrowser_NavigationStarting;
+      webView.CoreWebView2.NewWindowRequested += OnWebBrowser_NewWindowRequested;
       webView.ZoomFactor = ConvertToZoomFactor(_settings.ZoomLevel);
       webView.CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
 
@@ -207,19 +208,56 @@ namespace Webview2Viewer
       }
       else if (!e.Uri.ToString().StartsWith("data:")) {
         e.Cancel = true;
-        var p = new Process();
-        var navUri = new Uri(e.Uri);
-        if (navUri.DnsSafeHost == "local.example") {
-          if (_on.Navigate != null && navUri.AbsolutePath.EndsWith(".md")) {
-            var path = HttpUtility2.UriToPath(navUri.AbsolutePath);
-            if (File.Exists(path)) {
-              _on.Navigate(this, new NavigateToEvent { Filename = path });
-            }
+        HandleExternalNavigation(e.Uri);
+      }
+    }
+
+    // Links that open a new window (target="_blank", window.open) must not spawn a
+    // popup WebView2 window: it would be a full browser outside our NavigationStarting
+    // filter. Route them through the same allowlist as ordinary navigation.
+    private void OnWebBrowser_NewWindowRequested(object sender, CoreWebView2NewWindowRequestedEventArgs e)
+    {
+      e.Handled = true;
+      HandleExternalNavigation(e.Uri);
+    }
+
+    private void HandleExternalNavigation(string uriText)
+    {
+      if (!Uri.TryCreate(uriText, UriKind.Absolute, out var navUri)) {
+        return;
+      }
+
+      if (navUri.DnsSafeHost == "local.example") {
+        if (_on.Navigate != null && navUri.AbsolutePath.EndsWith(".md", StringComparison.OrdinalIgnoreCase)) {
+          var path = HttpUtility2.UriToPath(navUri.AbsolutePath);
+          if (File.Exists(path)) {
+            _on.Navigate(this, new NavigateToEvent { Filename = path });
           }
-          return;
         }
-        p.StartInfo = new ProcessStartInfo(e.Uri);
-        p.Start();
+        return;
+      }
+
+      // Only web/mail schemes are handed to the shell. Anything else (file:, UNC,
+      // custom protocol handlers, ...) would let a crafted document launch programs
+      // via ShellExecute; those links are simply ignored.
+      if (!IsShellSafeScheme(navUri)) {
+        return;
+      }
+      try {
+        Process.Start(new ProcessStartInfo(navUri.AbsoluteUri) { UseShellExecute = true });
+      }
+      catch (Exception) { }
+    }
+
+    private static bool IsShellSafeScheme(Uri uri)
+    {
+      switch (uri.Scheme.ToLowerInvariant()) {
+        case "http":
+        case "https":
+        case "mailto":
+          return true;
+        default:
+          return false;
       }
     }
 
