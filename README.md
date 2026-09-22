@@ -154,15 +154,9 @@ To open the settings for this plugin: Plugins -> AnotherMarkdown -> Settings
 
 With the `tasks-list` extension enabled, `- [ ]` / `- [x]` items render as checkboxes and `- ( )` / `- (x)` items as radio buttons. Clicking them updates the Markdown in the editor. Radio buttons of one list form a group: selecting one clears the others; clicking the selected one clears it.
 
-### Pre-processor (ini only)
+### Pre-processor
 
-A command line can be configured in `plugins\Config\AnotherMarkdown.ini` that rewrites the Markdown before it is rendered (e.g. to expand custom macros). `%inputfile%` and `%outputfile%` are replaced with temporary file names; the command must write the result to `%outputfile%`. An example C# project is in `misc\PPExtensions`.
-
-```
-[Options]
-PreProcessorExe=C:\tools\preprocessor.exe
-PreProcessorArguments=%inputfile% %outputfile%
-```
+A program can be configured (Settings -> *Pre-processor* and *Pre-processor arguments*) that rewrites the Markdown before it is rendered, e.g. to expand custom macros. `%inputfile%` and `%outputfile%` in the arguments are replaced with temporary file names; the program must write its result to `%outputfile%`. The default arguments are `%inputfile% %outputfile%`. An example C# project is in `misc\PPExtensions`. The same values live in `plugins\Config\AnotherMarkdown.ini` as `PreProcessorExe` / `PreProcessorArguments`.
 
 ### Synchronize viewer with caret position
 

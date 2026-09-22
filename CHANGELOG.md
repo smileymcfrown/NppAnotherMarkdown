@@ -2,6 +2,7 @@
 
 ### Unreleased - preview usability
 
+* Pre-processor program and arguments can be set in the Settings dialog.
 * Same-document `#anchor` links (including footnote back-links) now work; they
   were silently cancelled before.
 * New extensions, on by default for fresh installs: `anchor` (GitHub-style
