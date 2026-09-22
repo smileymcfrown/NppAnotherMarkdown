@@ -3,6 +3,15 @@
 ### Unreleased - preview usability
 
 * Pre-processor program and arguments can be set in the Settings dialog.
+* A real dark theme: `markdown-dark.css` was a copy of the light stylesheet
+  (white background); it is now derived from it with NppMarkdownPanel's dark
+  colours, and highlight.js switches to its dark palette in dark mode.
+* Fixed: the preview page had no `<!DOCTYPE html>`, so it rendered in quirks
+  mode (KaTeX warned about it).
+* Fixed: with scroll sync on, the line anchors broke plugins that rely on the
+  standard token layout (heading ids, toc, task lists); they are now inserted
+  last.
+* README screenshots.
 * Same-document `#anchor` links (including footnote back-links) now work; they
   were silently cancelled before.
 * New extensions, on by default for fresh installs: `anchor` (GitHub-style

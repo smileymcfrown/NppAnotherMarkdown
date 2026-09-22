@@ -84,11 +84,27 @@ After the installation you will find a small purple markdown icon in your toolba
 Just click it to show the markdown preview. Click again to hide the preview.
 Thats all you need to do ;)
 
-With dark mode enabled in Notepad++
+The preview with the document outline, a table of contents, editable task/radio lists, a GitHub-style alert, highlighted code and KaTeX:
+
+![preview](help/preview-light.png "Preview with outline")
+
+With dark mode enabled in Notepad++:
+
+![preview dark](help/preview-dark.png "Preview in dark mode")
+
+Mermaid diagrams, tables and footnotes; the outline follows the scroll position:
+
+![diagrams](help/preview-diagrams.png "Mermaid, tables, footnotes")
+
+The find bar (`Ctrl+F`):
+
+![find](help/find-bar.png "Find in the preview")
 
 ### Settings
 
 To open the settings for this plugin: Plugins -> AnotherMarkdown -> Settings
+
+![settings](help/settings.png "Settings dialog")
 
 * #### CSS File
     This allows you to select a CSS file to use if you don't want the default style of the preview

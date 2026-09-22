@@ -5,7 +5,11 @@ import { Token } from "markdown-it/index.js";
 import { Hashmap } from "../Lib/Common/Hashmap";
 
 export default function markdownItLineMark(md: MarkdownIt, options: any) {
-  md.core.ruler.after('inline', 'linemark', function (state) {
+  // Last in the core chain: the anchors are inserted as extra block-level
+  // tokens, and plugins that rely on the standard token layout (markdown-it-
+  // anchor and toc read tokens[i + 1] after heading_open, the task-list plugin
+  // checks tokens[i - 2]) must have run before that.
+  md.core.ruler.push('linemark', function (state) {
     const ruler = new LineMarkRuler(state);
     ruler.Render();
   });

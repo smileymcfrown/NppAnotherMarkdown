@@ -54,7 +54,9 @@ export async function markdownItPluginPack(enabled: string[], md: MarkdownIt) {
 
   if (enabled.includes("highlightjs")) {
     builder.push((async () => {
-      importCss(["markdown/plugin-highlightjs/github.min.css"]);
+      // html.dark is set by markdown.ts from the host's dark-mode flag before the pack runs
+      const dark = document.documentElement.classList.contains("dark");
+      importCss([dark ? "markdown/plugin-highlightjs/github-dark.min.css" : "markdown/plugin-highlightjs/github.min.css"]);
       await importScript(["markdown/markdown-it-highlightjs@11.11.1.min.js"]);
 
       md.options.highlight = function (str, lang) {
@@ -86,7 +88,15 @@ export async function markdownItPluginPack(enabled: string[], md: MarkdownIt) {
   }
   if (enabled.includes("anchor")) {
     // GitHub-style ids on headings; no permalink symbols in the output.
-    md.use(markdownItAnchor, { slugify, tabIndex: false });
+    md.use(markdownItAnchor, {
+      slugify,
+      tabIndex: false,
+      // tolerate tokens without children (plugins may insert extra tokens)
+      getTokensText: (tokens: any[] | null) => (tokens ?? [])
+        .filter(t => ["text", "code_inline"].includes(t.type))
+        .map(t => t.content)
+        .join("")
+    });
   }
   if (enabled.includes("toc")) {
     // "[toc]", "[[toc]]" or "${toc}" on a line of its own is replaced by a table of contents.
