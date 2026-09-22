@@ -2,6 +2,9 @@
   "abbr": {
     "title": "abbr: add <abbr> abbreviation tag support"
   },
+  "anchor": {
+    "title": "anchor: GitHub-style ids on headings, so [text](#my-heading) links work"
+  },
   "alert": {
     "title": "alert: GFM style alerts blocks"
   },
@@ -82,6 +85,9 @@
   },
   "tab": {
     "title": "tab: block-level custom tabs"
+  },
+  "toc": {
+    "title": "toc: replace a [toc] line with a table of contents (needs anchor)"
   },
   "tasks-list": {
     "title": "tasks-list: editable task lists - [ ] / [x] checkboxes and ( ) / (x) radio buttons"

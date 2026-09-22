@@ -32,6 +32,9 @@ import markdownItEmbedQrcode from './markdown-it-embed-qrcode'
 import markdownItEmbedPano360 from './markdown-it-embed-pano360'
 import markdownItMermaid from './markdown-it-mermaid'
 import markdownItFrontMatter from './markdown-it-frontmatter'
+import markdownItAnchor from 'markdown-it-anchor'
+import markdownItTocDoneRight from 'markdown-it-toc-done-right'
+import { slugify } from '../Misc/Anchors'
 import { importCss, importScript } from '../Misc/DynamicLoad'
 
 export async function markdownItPluginPack(enabled: string[], md: MarkdownIt) {
@@ -80,6 +83,14 @@ export async function markdownItPluginPack(enabled: string[], md: MarkdownIt) {
 
   if (enabled.includes("frontmatter")) {
     md.use(markdownItFrontMatter);
+  }
+  if (enabled.includes("anchor")) {
+    // GitHub-style ids on headings; no permalink symbols in the output.
+    md.use(markdownItAnchor, { slugify, tabIndex: false });
+  }
+  if (enabled.includes("toc")) {
+    // "[toc]", "[[toc]]" or "${toc}" on a line of its own is replaced by a table of contents.
+    md.use(markdownItTocDoneRight, { slugify, listType: "ul", containerClass: "toc", level: [1, 2, 3, 4] });
   }
   if (enabled.includes("attrs")) {
     md.use(attrs);

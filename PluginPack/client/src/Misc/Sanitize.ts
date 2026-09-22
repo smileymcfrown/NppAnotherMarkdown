@@ -17,12 +17,24 @@ const ADD_ATTR = ['target'];
 //  - <base> would redirect every relative URL on the page.
 const FORBID_TAGS = ['form', 'meta', 'base', 'link'];
 
+// DOMPurify's SANITIZE_DOM drops every id that happens to be a property name of
+// `document` ("links", "images", "title", "body", ...), which would break the
+// GitHub-style heading anchors for headings with those names. Document-level
+// DOM clobbering only works through the `name` attribute of img/embed/form/
+// iframe/object (the last four are removed anyway), so strip exactly that.
+purifier.addHook('uponSanitizeAttribute', (node, data) => {
+  if (data.attrName === 'name' && ['IMG', 'EMBED', 'FORM', 'IFRAME', 'OBJECT'].includes(node.nodeName)) {
+    data.keepAttr = false;
+  }
+});
+
 export function sanitizeMarkdownHtml(html: string): DocumentFragment {
   return purifier.sanitize(html, {
     USE_PROFILES: { html: true, svg: true, svgFilters: true, mathMl: true },
     ADD_TAGS,
     ADD_ATTR,
     FORBID_TAGS,
+    SANITIZE_DOM: false,
     // Keep the text of removed elements (e.g. a stripped <form> still shows its
     // fields' labels) - but never the content of script-like elements, which
     // DOMPurify drops entirely regardless of this flag.

@@ -16,6 +16,7 @@ import { exportDocument } from './Misc/Export';
 import { notifyWebEvent } from './Client/Webevent';
 import { InitOutline, RefreshOutline } from './Misc/Outline';
 import { InitStatusBar } from './Misc/StatusBar';
+import { InitAnchorLinks } from './Misc/Anchors';
 
 importCss(["markdown/editor.css"]);
 
@@ -124,6 +125,7 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
   InitDragAndDrop();
   InitPasteContent();
   InitStatusBar();
+  InitAnchorLinks();
 
   if (!options.modified && options.pageYOffset && options.pageYOffset !== 0) {
     ScrollToPageY(options.pageYOffset);
