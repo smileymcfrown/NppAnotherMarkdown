@@ -1,5 +1,19 @@
 ## Version History
 
+### Unreleased - preview usability
+
+* Same-document `#anchor` links (including footnote back-links) now work; they
+  were silently cancelled before.
+* New extensions, on by default for fresh installs: `anchor` (GitHub-style
+  heading ids) and `toc` (`[toc]` table of contents).
+* Find bar in the preview (`Ctrl+F` / `F3`, toolbar *Find*, plugin menu).
+* Double-click in the preview moves the editor caret to that line.
+* *Copy* button on code blocks; image lightbox; word count and reading time in
+  the status bar; `Ctrl`+wheel zoom is persisted.
+* Plugin menu: *Refresh preview*, *Print...*, *Open in browser*.
+* Links to local files with a supported extension open in Notepad++ (not only
+  `.md`).
+
 ### Unreleased - panel and file-type features
 
 * Radio-button lists (part of the `tasks-list` extension): `- ( ) option` /

@@ -114,5 +114,11 @@ Image with a relative, URL-encoded, non-ASCII path (relative references, includi
 
 <details open><summary>details / summary</summary>still renders</details>
 
+Anchor link (must scroll, not open anything): [back to the top](#security-regression-checks) - and `Ctrl+F` in the preview must open the find bar.
+
+```text
+hover this block: a Copy button appears; clicking it puts this text on the clipboard
+```
+
 <style>.security-test-style { color: green; font-weight: bold }</style>
 <p class="security-test-style">Custom inline style still applies (green, bold).</p>

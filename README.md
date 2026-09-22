@@ -20,6 +20,8 @@ The plugin is a fork of the [NppMarkdownPanel plugin](https://github.com/mohzy83
 | [emoji](https://github.com/markdown-it/markdown-it-emoji)      | Emoji |
 | [figure](https://mdit-plugins.github.io/figure.html)           | Generating figures with captions from images |
 | [footnote](https://mdit-plugins.github.io/footnote.html)       | Footnotes |
+| anchor                                                         | GitHub-style ids on headings, so `[text](#my-heading)` links work ([markdown-it-anchor](https://github.com/valeriangalliat/markdown-it-anchor)) |
+| toc                                                            | `[toc]` (or `[[toc]]`, `${toc}`) on a line of its own is replaced by a table of contents ([markdown-it-toc-done-right](https://github.com/nagaozen/markdown-it-toc-done-right)) |
 | frontmatter                                                    | YAML front matter (a `---` block at the top of the file) is shown as a `yaml` code block instead of being rendered as Markdown |
 | [highlight.js](https://github.com/highlightjs/highlight.js)    | Code syntax highlight |
 | [icon](https://mdit-plugins.github.io/icon.html)               | Icons |
@@ -136,6 +138,17 @@ To open the settings for this plugin: Plugins -> AnotherMarkdown -> Settings
 
 * #### Export to PDF...
     Prints the current preview to a PDF file.
+
+### Working in the preview
+
+* **Find** - press `Ctrl+F` (or `F3`) while the preview has the focus, use the *Find* toolbar button or *Plugins -> AnotherMarkdown -> Find in preview...*. All matches are highlighted; `Enter` / `Shift+Enter` (or `F3` / `Shift+F3`) step through them, `Esc` closes the bar.
+* **Double-click** anywhere in the preview to move the editor caret to the corresponding line of the Markdown source.
+* **Links** to other Markdown files (or any file with a supported extension) open in Notepad++; `http(s)` and `mailto` links open in the default browser / mail client; everything else is ignored. `#anchor` links jump within the document.
+* **Code blocks** show a *Copy* button when hovered.
+* **Images** that are displayed smaller than their real size open full size when clicked (`Esc` or click to close).
+* **Zoom** with `Ctrl` + mouse wheel; the new zoom level is kept as the setting.
+* **Status bar** (when enabled) shows the target of the link under the mouse, otherwise the word count and an estimated reading time.
+* *Plugins -> AnotherMarkdown* also has **Refresh preview**, **Print...** and **Open in browser**.
 
 ### Editable task lists and radio lists
 
