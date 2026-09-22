@@ -28,9 +28,7 @@ class LineMarkRuler {
     this.lines = this.state.src.split('\n');
     this.moveToNextLine();
 
-    for (var i = 0; i < state.tokens.length; i++) {
-      state.tokens = this.handleToken(state.tokens, i);
-    }
+    state.tokens = this.handleTokens(state.tokens);
   }
 
   private moveToNextLine() {
@@ -52,30 +50,29 @@ class LineMarkRuler {
     this.line = '';
   }
 
-  private handleToken(tokens: Token[], ix: number): Token[] {
-    const token = tokens[ix];
+  // Walks a token list once and returns a new list with the line anchors
+  // inserted in front of the tokens they belong to. Building the result in one
+  // pass matters: inserting into the array per anchor copied the whole array
+  // every time, which was quadratic - ~23 s on a 2.3 MB document.
+  private handleTokens(tokens: Token[]): Token[] {
+    const result: Token[] = [];
+    for (const token of tokens) {
+      this.handleToken(token, result);
+    }
+    return result;
+  }
 
+  // Appends the line anchor (when one belongs here) and then the token itself.
+  private handleToken(token: Token, result: Token[]) {
     if (token.children) {
-      const children = token.children.filter(li => li.type === 'text');
-      children.push(...token.children.filter(li => li.type !== 'text'))
-
-      for (let i1 = 0; i1 < children.length; i1++) {
-        if (!token.children) {
-          continue;
-        }
-
-        const child = children[i1];
-        const index = token.children.indexOf(child);
-        if (index !== -1) {
-          token.children = this.handleToken(token.children, index);
-        }
-      }
+      token.children = this.handleTokens(token.children);
     }
 
     if (token.type === 'text' && token.content && this.nline !== -1) {
       let a = token.content.trim();
       if (a.length === 0) {
-        return tokens;
+        result.push(token);
+        return;
       }
 
       let b = this.line;
@@ -101,46 +98,36 @@ class LineMarkRuler {
       }
 
       if (match) {
-        tokens = this.insertLineMarker(tokens, ix, this.nline);
+        this.insertLineMarker(result, this.nline);
         this.moveToNextLine();
       }
-      return tokens;
+      result.push(token);
+      return;
     }
     if (token.nesting === 1 || token.nesting === -1) {
-      return tokens;
+      result.push(token);
+      return;
     }
     if (token.map) {
-      const map = token.map;
-      const nline = map[0];
-      tokens = this.insertLineMarker(tokens, ix, nline);
+      const nline = token.map[0];
+      this.insertLineMarker(result, nline);
       if (this.nline < nline) {
         this.nline = nline;
         this.moveToNextLine();
       }
     }
-    return tokens;
+    result.push(token);
   }
 
-  private insertAt<T>(array: Array<T>, pos: number, value: T) {
-    if (pos >= array.length) {
-      array = [...array];
-      array.push(value);
-      return array;
-    }
-    return (pos <= 0)
-      ? [value, ...array]
-      : [...array.slice(0, pos), value, ...array.slice(pos)];
-  }
-
-  private insertLineMarker(tokens: Token[], pos: number, nline: number) {
+  private insertLineMarker(result: Token[], nline: number) {
     if (this.mark[`L${nline}`] === true) {
-      return tokens;
+      return;
     }
 
     this.mark[`L${nline}`] = true;
-    let anchor = new this.state.Token('html_inline', '', 0);
+    const anchor = new this.state.Token('html_inline', '', 0);
     anchor.content = `<span id='LINE${nline}' class="linemark"></span>`;
-    return this.insertAt(tokens, pos, anchor);
+    result.push(anchor);
   }
 
   private mark: Hashmap<boolean> = {};

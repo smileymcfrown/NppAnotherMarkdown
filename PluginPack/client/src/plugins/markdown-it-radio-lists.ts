@@ -41,10 +41,9 @@ export default function markdownItRadioList(md: MarkdownIt) {
         // so a click cannot uncheck a radio in another list.
         const list = input.closest('ul, ol');
         if (list) {
-          if (!list.id) {
-            list.id = 'radio-list-' + Math.floor(Math.random() * 1e9);
-          }
-          input.name = list.id;
+          // Named after the first radio's source line: unique per list, and the
+          // same on every re-render of the same document.
+          input.name = 'radio-list-' + (list.querySelector<HTMLInputElement>('input.radio-list-item-radio')?.dataset.line ?? '0');
         }
         input.onclick = (e) => onRadioClicked(e);
       }

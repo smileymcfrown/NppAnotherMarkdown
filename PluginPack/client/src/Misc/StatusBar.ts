@@ -40,6 +40,21 @@ export function SetStatusInfo(text: string) {
 }
 
 // Words / characters / estimated reading time of the rendered document.
+let statsHandle = 0;
+
+// Counting words walks every text node, which is pointless work while the user
+// is still typing: do it when the browser is idle and only for the latest call.
+export function ScheduleDocumentStats(container: HTMLElement) {
+  if (statsHandle !== 0) {
+    (window as any).cancelIdleCallback?.(statsHandle);
+    clearTimeout(statsHandle);
+  }
+  const run = () => { statsHandle = 0; UpdateDocumentStats(container); };
+  statsHandle = (window as any).requestIdleCallback
+    ? (window as any).requestIdleCallback(run, { timeout: 2000 })
+    : (setTimeout(run, 500) as unknown as number);
+}
+
 export function UpdateDocumentStats(container: HTMLElement) {
   // Text nodes joined with spaces (innerText would force layout on the whole,
   // possibly huge, document); UI added by the preview itself is skipped.

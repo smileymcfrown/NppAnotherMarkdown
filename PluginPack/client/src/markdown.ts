@@ -11,11 +11,11 @@ import { InitPasteContent } from './Misc/PasteContent';
 import { MarkdownRenderContext } from './Misc/MarkdownRenderContext';
 import { importCss } from './Misc/DynamicLoad';
 import { setSessionToken } from './Client/Session';
-import { sanitizeMarkdownHtml } from './Misc/Sanitize';
+import { RenderIncremental, ResetIncrementalRender } from './Misc/IncrementalRender';
 import { exportDocument } from './Misc/Export';
 import { notifyWebEvent } from './Client/Webevent';
 import { InitOutline, RefreshOutline } from './Misc/Outline';
-import { InitStatusBar, UpdateDocumentStats } from './Misc/StatusBar';
+import { InitStatusBar, ScheduleDocumentStats } from './Misc/StatusBar';
 import { InitCodeCopy } from './Misc/CodeCopy';
 import { InitGotoLine } from './Misc/GotoLine';
 import { InitLightbox } from './Misc/Lightbox';
@@ -45,6 +45,12 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
   }
   InitOutline(options.outline, options.outlineCollapsed, container);
 
+  // Phase timings of the last render, for diagnostics (window.__renderStats).
+  const stats: Record<string, number> = {};
+  let phaseStart = performance.now();
+  const phase = (name: string) => { const now = performance.now(); stats[name] = Math.round(now - phaseStart); phaseStart = now; };
+  (window as any).__renderStats = stats;
+
   const sourceUrl = options.document;
   const match = sourceUrl.match(/\/([^\/]+)$/);
   if (match) {
@@ -53,6 +59,7 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
 
   const response = await fetch(sourceUrl);
   const data = await response.arrayBuffer();
+  phase("fetch");
   let source;
 
   if (data.byteLength > 3) {
@@ -80,6 +87,9 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
     return;
   }
 
+  if (context.sourceUrl !== sourceUrl) {
+    ResetIncrementalRender();
+  }
   context.source = source;
   context.sourceUrl = sourceUrl;
   context.lineMark = options.lineMark;
@@ -113,17 +123,29 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
   // javascript: URLs, no <iframe>/<object>/<form>. Trusted runtimes (mermaid,
   // pannellum, highlight.js) are loaded from assets.example by the plugins
   // themselves via importScript(), never from document content.
-  const html = md.render(source);
-  container.replaceChildren(sanitizeMarkdownHtml(html));
+  phase("setup");
+  // Parses, renders and patches only the blocks that changed; falls back to a
+  // full replace on the first render of a document.
+  const render = RenderIncremental(md, source, container);
+  stats["blocks"] = render.blocksTotal;
+  stats["changed"] = render.blocksChanged;
+  phase("render");
   if (context.postRender.length !== 0) {
     await Promise.all(context.postRender.map(li => li()));
     context.postRender = [];
   }
+  phase("postRender");
   renderCompleted.resolve();
-  RefreshOutline();
-  RefreshFind();
-  InitCodeCopy(container);
-  UpdateDocumentStats(container);
+  if (render.blocksChanged !== 0 || render.fullRender) {
+    RefreshOutline();
+    phase("outline");
+    RefreshFind();
+    phase("find");
+    InitCodeCopy(container);
+    phase("codeCopy");
+    ScheduleDocumentStats(container);
+    phase("stats");
+  }
   // Lets the host know the DOM now holds this version of the document
   // (used for the automatic HTML output).
   notifyWebEvent("renderCompleted", { document: sourceUrl }).catch(() => { });

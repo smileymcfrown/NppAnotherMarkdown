@@ -29,18 +29,28 @@ export function InitOutline(show: boolean, startCollapsed: boolean, content: HTM
     return;
   }
   enabled = true;
+  lastSignature = "";
   collapsed = startCollapsed;
   ensureElements();
   buildOutline();
   applyCollapsed();
 }
 
-// Called after every render (the heading list may have changed).
+// Called after every render. Rebuilding the list means a layout pass over every
+// heading, so it only happens when the headings actually changed.
+let lastSignature = "";
+
 export function RefreshOutline() {
-  if (enabled) {
-    buildOutline();
-    updateActiveItem();
+  if (!enabled) {
+    return;
   }
+  const signature = JSON.stringify(headings().map(h => h.tagName + ":" + (h.textContent ?? "")));
+  if (signature === lastSignature) {
+    return;
+  }
+  lastSignature = signature;
+  buildOutline();
+  updateActiveItem();
 }
 
 function ensureElements() {
