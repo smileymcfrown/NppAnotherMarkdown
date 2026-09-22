@@ -1,5 +1,18 @@
 ## Version History
 
+### Unreleased - panel and file-type features
+
+* Document outline sidebar (Settings / plugin menu "Show outline"): heading list
+  with click-to-scroll, current heading highlighted, burger button to collapse.
+* Three-state toggle (Settings): hidden -> docked -> full width -> hidden.
+* Supported file extensions list, "Allow all file extensions", "Preview files
+  without extension", "Automatically show panel for supported files".
+* Status bar shows the target of the link under the mouse ("Show Statusbar in
+  Preview Window" did nothing before).
+* The pre-processor configured in the ini (PreProcessorExe / PreProcessorArguments)
+  is now actually run; the unused PostProcessor keys are gone.
+* Minimum content width of 250px in narrow panels.
+
 ### Unreleased - export features
 
 * Save as HTML... / Save as HTML (light theme)... - standalone HTML with inlined

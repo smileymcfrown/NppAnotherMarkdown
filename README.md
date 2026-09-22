@@ -106,7 +106,22 @@ To open the settings for this plugin: Plugins -> AnotherMarkdown -> Settings
     Checking this box will enable the toolbar in the preview window (Export / Copy HTML buttons). By default, this is unchecked.
 
 * #### Show Statusbar in Preview Window (Preview Links)
-    Checking this box will show the status bar, which previews urls for links. By default, this is unchecked.
+    Checking this box will show the status bar, which previews the target of the link under the mouse. By default, this is unchecked.
+
+* #### Show document outline
+    Shows a sidebar with the headings of the document. Click a heading to jump to it; the entry of the heading currently at the top of the preview is highlighted. The burger button (&#9776;) collapses/expands the sidebar. Also available as *Plugins -> AnotherMarkdown -> Show outline*.
+
+* #### Three-state toggle (docked > full width > hidden)
+    Changes the behaviour of *Toggle Markdown Panel*: with this option the panel cycles through hidden -> docked -> full width (the editor pane is pushed away so only the preview is visible) -> hidden. Without it the panel just toggles between docked and hidden.
+
+* #### Supported extensions / Allow all file extensions
+    Comma separated list of file extensions that are rendered as Markdown (default `md,mkd,mdwn,mdown,mdtxt,markdown,txt`). Other files show a short notice instead. *Allow all file extensions* skips the check - be careful, rendering large logs or source files as Markdown can be slow.
+
+* #### Preview files without extension
+    Also renders files that have no extension (e.g. "new 2").
+
+* #### Automatically show panel for supported files
+    When switching tabs (or after Save As / rename), the panel is opened for files with a supported extension and closed for other files.
 
 ### Export (Plugins -> AnotherMarkdown, or the preview window toolbar)
 
@@ -121,6 +136,16 @@ To open the settings for this plugin: Plugins -> AnotherMarkdown -> Settings
 
 * #### Export to PDF...
     Prints the current preview to a PDF file.
+
+### Pre-processor (ini only)
+
+A command line can be configured in `plugins\Config\AnotherMarkdown.ini` that rewrites the Markdown before it is rendered (e.g. to expand custom macros). `%inputfile%` and `%outputfile%` are replaced with temporary file names; the command must write the result to `%outputfile%`. An example C# project is in `misc\PPExtensions`.
+
+```
+[Options]
+PreProcessorExe=C:	ools\preprocessor.exe
+PreProcessorArguments=%inputfile% %outputfile%
+```
 
 ### Synchronize viewer with caret position
 
