@@ -54,6 +54,11 @@
       this.btnClearHtmlFile = new System.Windows.Forms.Button();
       this.cbShowOutline = new System.Windows.Forms.CheckBox();
       this.cbThreeStateToggle = new System.Windows.Forms.CheckBox();
+      this.label8 = new System.Windows.Forms.Label();
+      this.tbSupportedExt = new System.Windows.Forms.TextBox();
+      this.cbAllowAllExt = new System.Windows.Forms.CheckBox();
+      this.cbSupportNoExt = new System.Windows.Forms.CheckBox();
+      this.cbAutoShowPanel = new System.Windows.Forms.CheckBox();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
@@ -94,7 +99,7 @@
       // btnSave
       // 
       this.btnSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.btnSave.Location = new System.Drawing.Point(468, 576);
+      this.btnSave.Location = new System.Drawing.Point(468, 630);
       this.btnSave.Name = "btnSave";
       this.btnSave.Size = new System.Drawing.Size(105, 36);
       this.btnSave.TabIndex = 20;
@@ -106,7 +111,7 @@
       // 
       this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-      this.btnCancel.Location = new System.Drawing.Point(579, 576);
+      this.btnCancel.Location = new System.Drawing.Point(579, 630);
       this.btnCancel.Name = "btnCancel";
       this.btnCancel.Size = new System.Drawing.Size(105, 36);
       this.btnCancel.TabIndex = 21;
@@ -401,12 +406,70 @@
       this.cbThreeStateToggle.UseVisualStyleBackColor = true;
       this.cbThreeStateToggle.CheckedChanged += new System.EventHandler(this.cbThreeStateToggle_CheckedChanged);
       //
+      // label8
+      //
+      this.label8.AutoSize = true;
+      this.label8.Location = new System.Drawing.Point(12, 551);
+      this.label8.Name = "label8";
+      this.label8.Size = new System.Drawing.Size(140, 17);
+      this.label8.TabIndex = 33;
+      this.label8.Text = "Supported extensions:";
+      //
+      // tbSupportedExt
+      //
+      this.tbSupportedExt.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.tbSupportedExt.Location = new System.Drawing.Point(170, 548);
+      this.tbSupportedExt.Name = "tbSupportedExt";
+      this.tbSupportedExt.Size = new System.Drawing.Size(250, 25);
+      this.tbSupportedExt.TabIndex = 24;
+      this.tbSupportedExt.TextChanged += new System.EventHandler(this.tbSupportedExt_TextChanged);
+      //
+      // cbAllowAllExt
+      //
+      this.cbAllowAllExt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.cbAllowAllExt.AutoSize = true;
+      this.cbAllowAllExt.Location = new System.Drawing.Point(440, 550);
+      this.cbAllowAllExt.Name = "cbAllowAllExt";
+      this.cbAllowAllExt.Size = new System.Drawing.Size(180, 21);
+      this.cbAllowAllExt.TabIndex = 25;
+      this.cbAllowAllExt.Text = "Allow all file extensions";
+      this.cbAllowAllExt.UseVisualStyleBackColor = true;
+      this.cbAllowAllExt.CheckedChanged += new System.EventHandler(this.cbAllowAllExt_CheckedChanged);
+      //
+      // cbSupportNoExt
+      //
+      this.cbSupportNoExt.AutoSize = true;
+      this.cbSupportNoExt.Location = new System.Drawing.Point(170, 581);
+      this.cbSupportNoExt.Name = "cbSupportNoExt";
+      this.cbSupportNoExt.Size = new System.Drawing.Size(220, 21);
+      this.cbSupportNoExt.TabIndex = 26;
+      this.cbSupportNoExt.Text = "Preview files without extension";
+      this.cbSupportNoExt.UseVisualStyleBackColor = true;
+      this.cbSupportNoExt.CheckedChanged += new System.EventHandler(this.cbSupportNoExt_CheckedChanged);
+      //
+      // cbAutoShowPanel
+      //
+      this.cbAutoShowPanel.AutoSize = true;
+      this.cbAutoShowPanel.Location = new System.Drawing.Point(440, 581);
+      this.cbAutoShowPanel.Name = "cbAutoShowPanel";
+      this.cbAutoShowPanel.Size = new System.Drawing.Size(240, 21);
+      this.cbAutoShowPanel.TabIndex = 27;
+      this.cbAutoShowPanel.Text = "Automatically show panel for supported files";
+      this.cbAutoShowPanel.UseVisualStyleBackColor = true;
+      this.cbAutoShowPanel.CheckedChanged += new System.EventHandler(this.cbAutoShowPanel_CheckedChanged);
+      //
       // SettingsForm
       //
       this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.CancelButton = this.btnCancel;
-      this.ClientSize = new System.Drawing.Size(696, 646);
+      this.ClientSize = new System.Drawing.Size(696, 700);
+      this.Controls.Add(this.label8);
+      this.Controls.Add(this.tbSupportedExt);
+      this.Controls.Add(this.cbAllowAllExt);
+      this.Controls.Add(this.cbSupportNoExt);
+      this.Controls.Add(this.cbAutoShowPanel);
       this.Controls.Add(this.cbShowOutline);
       this.Controls.Add(this.cbThreeStateToggle);
       this.Controls.Add(this.label7);
@@ -490,5 +553,10 @@
     private System.Windows.Forms.Button btnClearHtmlFile;
     private System.Windows.Forms.CheckBox cbShowOutline;
     private System.Windows.Forms.CheckBox cbThreeStateToggle;
+    private System.Windows.Forms.Label label8;
+    private System.Windows.Forms.TextBox tbSupportedExt;
+    private System.Windows.Forms.CheckBox cbAllowAllExt;
+    private System.Windows.Forms.CheckBox cbSupportNoExt;
+    private System.Windows.Forms.CheckBox cbAutoShowPanel;
   }
 }

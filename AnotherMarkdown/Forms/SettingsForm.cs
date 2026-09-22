@@ -21,6 +21,10 @@ namespace AnotherMarkdown.Forms
     public string HtmlFileName { get; set; }
     public bool ShowOutline { get; set; }
     public bool EnableThreeStateToggle { get; set; }
+    public string SupportedFileExt { get; set; }
+    public bool AllowAllExtensions { get; set; }
+    public bool SupportFilesWithNoExt { get; set; }
+    public bool AutoShowPanel { get; set; }
 
     public string[] AllowedMarkdownPlugins { get; set; }
 
@@ -49,6 +53,16 @@ namespace AnotherMarkdown.Forms
       tbHtmlFile.Text = HtmlFileName;
       cbShowOutline.Checked = ShowOutline;
       cbThreeStateToggle.Checked = EnableThreeStateToggle;
+
+      SupportedFileExt = string.IsNullOrWhiteSpace(settings.SupportedFileExt) ? Settings.DEFAULT_SUPPORTED_FILE_EXT : settings.SupportedFileExt;
+      AllowAllExtensions = settings.AllowAllExtensions;
+      SupportFilesWithNoExt = settings.SupportFilesWithNoExt;
+      AutoShowPanel = settings.AutoShowPanel;
+      tbSupportedExt.Text = SupportedFileExt;
+      cbAllowAllExt.Checked = AllowAllExtensions;
+      tbSupportedExt.Enabled = !AllowAllExtensions;
+      cbSupportNoExt.Checked = SupportFilesWithNoExt;
+      cbAutoShowPanel.Checked = AutoShowPanel;
 
       tbAssetsPath.Text = AssetsPath;
       trackBar1.Value = ZoomLevel;
@@ -126,6 +140,30 @@ namespace AnotherMarkdown.Forms
     private void btnClearHtmlFile_Click(object sender, EventArgs e)
     {
       tbHtmlFile.Text = "";
+    }
+
+    private void tbSupportedExt_TextChanged(object sender, EventArgs e)
+    {
+      SupportedFileExt = string.Join(",", tbSupportedExt.Text
+        .Split(',', ';', ' ')
+        .Select(li => li.Trim().TrimStart('.'))
+        .Where(li => li.Length != 0));
+    }
+
+    private void cbAllowAllExt_CheckedChanged(object sender, EventArgs e)
+    {
+      AllowAllExtensions = cbAllowAllExt.Checked;
+      tbSupportedExt.Enabled = !AllowAllExtensions;
+    }
+
+    private void cbSupportNoExt_CheckedChanged(object sender, EventArgs e)
+    {
+      SupportFilesWithNoExt = cbSupportNoExt.Checked;
+    }
+
+    private void cbAutoShowPanel_CheckedChanged(object sender, EventArgs e)
+    {
+      AutoShowPanel = cbAutoShowPanel.Checked;
     }
 
     private void cbShowOutline_CheckedChanged(object sender, EventArgs e)

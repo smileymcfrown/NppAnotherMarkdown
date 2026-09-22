@@ -16,6 +16,7 @@ using DiffPlex;
 using Kbg.NppPluginNET.PluginInfrastructure;
 using PanelCommon;
 using TheArtOfDev.HtmlRenderer.WinForms.Utilities;
+using Webview2Viewer;
 
 namespace AnotherMarkdown
 {
@@ -97,6 +98,10 @@ namespace AnotherMarkdown
       settings.HtmlFileName = Win32.ReadIniValue("Options", "HtmlFileName", _iniFilePath, "");
       settings.ShowOutline = PluginUtils.ReadIniBool("Options", "ShowOutline", _iniFilePath);
       settings.EnableThreeStateToggle = PluginUtils.ReadIniBool("Options", "EnableThreeStateToggle", _iniFilePath);
+      settings.SupportedFileExt = Win32.ReadIniValue("Options", "SupportedFileExt", _iniFilePath, Settings.DEFAULT_SUPPORTED_FILE_EXT);
+      settings.AllowAllExtensions = PluginUtils.ReadIniBool("Options", "AllowAllExtensions", _iniFilePath);
+      settings.SupportFilesWithNoExt = PluginUtils.ReadIniBool("Options", "SupportFilesWithNoExt", _iniFilePath);
+      settings.AutoShowPanel = PluginUtils.ReadIniBool("Options", "AutoShowPanel", _iniFilePath);
       settings.IsDarkModeEnabled = IsDarkModeEnabled();
       return settings;
     }
@@ -128,7 +133,22 @@ namespace AnotherMarkdown
           break;
         }
         case (uint) NppMsg.NPPN_BUFFERACTIVATED: {
+          if (_settings.AutoShowPanel) {
+            AutoShowOrHidePanel(_nppGateway.GetCurrentFilePath());
+          }
           if (_skipSyncEventsDue < DateTime.UtcNow) {
+            RenderMarkdown(force: true);
+          }
+          break;
+        }
+        // Save As / rename can change the extension and therefore whether the
+        // file is previewed at all.
+        case (uint) NppMsg.NPPN_FILESAVED:
+        case (uint) NppMsg.NPPN_FILERENAMED: {
+          if (_settings.AutoShowPanel) {
+            AutoShowOrHidePanel(_nppGateway.GetCurrentFilePath());
+          }
+          if (_isPanelVisible) {
             RenderMarkdown(force: true);
           }
           break;
@@ -227,6 +247,10 @@ namespace AnotherMarkdown
         _settings.HtmlFileName = settingsForm.HtmlFileName;
         SetShowOutline(settingsForm.ShowOutline);
         _settings.EnableThreeStateToggle = settingsForm.EnableThreeStateToggle;
+        _settings.SupportedFileExt = settingsForm.SupportedFileExt;
+        _settings.AllowAllExtensions = settingsForm.AllowAllExtensions;
+        _settings.SupportFilesWithNoExt = settingsForm.SupportFilesWithNoExt;
+        _settings.AutoShowPanel = settingsForm.AutoShowPanel;
         _settings.EnabledMarkdownPlugins = settingsForm.AllowedMarkdownPlugins;
 
         _settings.IsDarkModeEnabled = IsDarkModeEnabled();
@@ -611,12 +635,63 @@ namespace AnotherMarkdown
       Win32.WriteIniValue("Options", "HtmlFileName", _settings.HtmlFileName ?? "", _iniFilePath);
       Win32.WriteIniValue("Options", "ShowOutline", _settings.ShowOutline.ToString(), _iniFilePath);
       Win32.WriteIniValue("Options", "EnableThreeStateToggle", _settings.EnableThreeStateToggle.ToString(), _iniFilePath);
+      Win32.WriteIniValue("Options", "SupportedFileExt", _settings.SupportedFileExt ?? "", _iniFilePath);
+      Win32.WriteIniValue("Options", "AllowAllExtensions", _settings.AllowAllExtensions.ToString(), _iniFilePath);
+      Win32.WriteIniValue("Options", "SupportFilesWithNoExt", _settings.SupportFilesWithNoExt.ToString(), _iniFilePath);
+      Win32.WriteIniValue("Options", "AutoShowPanel", _settings.AutoShowPanel.ToString(), _iniFilePath);
     }
 
     private void ShowAboutDialog()
     {
       var aboutDialog = new AboutForm();
       aboutDialog.ShowDialog();
+    }
+
+    private bool IsSupportedFile(string path)
+    {
+      if (string.IsNullOrEmpty(path)) {
+        return false;
+      }
+      var extension = Path.GetExtension(path);
+      if (string.IsNullOrEmpty(extension)) {
+        return _settings.SupportFilesWithNoExt;
+      }
+      if (_settings.AllowAllExtensions) {
+        return true;
+      }
+      extension = extension.Substring(1);
+      return (_settings.SupportedFileExt ?? "")
+        .Split(',')
+        .Select(li => li.Trim().TrimStart('.'))
+        .Any(li => li.Length != 0 && li.Equals(extension, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private Webview2WebbrowserControl.DocumentKind ClassifyDocument(string path)
+    {
+      if (path != null && path.EndsWith(".pano360.json", StringComparison.OrdinalIgnoreCase)) {
+        return Webview2WebbrowserControl.DocumentKind.Auto;
+      }
+      return IsSupportedFile(path)
+        ? Webview2WebbrowserControl.DocumentKind.Markdown
+        : Webview2WebbrowserControl.DocumentKind.Unsupported;
+    }
+
+    // "Automatically show panel": open for supported files, close for others.
+    private void AutoShowOrHidePanel(string path)
+    {
+      var supported = IsSupportedFile(path) || (path != null && path.EndsWith(".pano360.json", StringComparison.OrdinalIgnoreCase));
+      if (supported && _panelState == PanelState.Hidden) {
+        ShowPanel();
+        _panelState = PanelState.Docked;
+        PreviewForm.UpdateSettings(_settings);
+      }
+      else if (!supported && _panelState != PanelState.Hidden) {
+        if (_panelState == PanelState.FullWidth) {
+          RestoreFromFullWidth();
+        }
+        HidePanel();
+        _panelState = PanelState.Hidden;
+      }
     }
 
     private enum PanelState { Hidden, Docked, FullWidth }
@@ -798,7 +873,7 @@ namespace AnotherMarkdown
           var currentFile = _nppGateway.GetCurrentFilePath();
           _currentFile = currentFile;
 
-          await PreviewForm.RenderMarkdown(currentText, currentFile);
+          await PreviewForm.RenderMarkdown(currentText, currentFile, ClassifyDocument(currentFile), _settings.SupportedFileExt);
         }
       }
       catch (Exception err) {

@@ -84,10 +84,10 @@ namespace AnotherMarkdown.Forms
       statusStrip2.Visible = settings.ShowStatusbar;
     }
 
-    public async Task RenderMarkdown(string currentText, string filepath)
+    public async Task RenderMarkdown(string currentText, string filepath, Webview2WebbrowserControl.DocumentKind kind, string supportedExtensions)
     {
       if (_webView != null) {
-        await _webView.SetContentAsync(currentText, filepath);
+        await _webView.SetContentAsync(currentText, filepath, kind, supportedExtensions);
       }
     }
 

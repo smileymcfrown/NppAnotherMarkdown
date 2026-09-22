@@ -110,7 +110,16 @@ namespace Webview2Viewer
       await ExecuteWebviewActionAsync((webView) => webView.ExecuteScriptAsync($"window.scrollToLine({lineNo})"));
     }
 
-    public async Task SetContentAsync(string content, string documentPath)
+    public enum DocumentKind
+    {
+      // Decided by the host from its extension settings.
+      Markdown,
+      Unsupported,
+      // Let the loader pick a viewer from the file name (e.g. *.pano360.json).
+      Auto
+    }
+
+    public async Task SetContentAsync(string content, string documentPath, DocumentKind kind = DocumentKind.Auto, string supportedExtensions = "")
     {
       await _webView;
       var fs = _webServices.OfType<LocalFileService>().First();
@@ -132,6 +141,7 @@ namespace Webview2Viewer
       reload = reload || (_enabledMarkdownPlugins != string.Join(",", _settings.EnabledMarkdownPlugins));
       reload = reload || (_showOutline != _settings.ShowOutline);
       reload = reload || (_darkMode != _settings.IsDarkModeEnabled);
+      reload = reload || (_documentKind != kind);
 
       if (_assetPath != assetsPath) {
         await ExecuteWebviewActionAsync((webView) => {
@@ -164,6 +174,7 @@ namespace Webview2Viewer
       _enabledMarkdownPlugins = string.Join(",", _settings.EnabledMarkdownPlugins);
       _showOutline = _settings.ShowOutline;
       _darkMode = _settings.IsDarkModeEnabled;
+      _documentKind = kind;
 
       var loader = File.ReadAllText(assetsPath + "/loader.html");
       cssFile = cssFile.Replace("\\", "/");
@@ -185,7 +196,15 @@ namespace Webview2Viewer
         ["token"] = _sessionToken
       };
 
-      if (documentPath.EndsWith(".md")) {
+      switch (kind) {
+        case DocumentKind.Markdown: options["view"] = "markdown"; break;
+        case DocumentKind.Unsupported: options["view"] = "unsupported"; break;
+        default: options["view"] = "auto"; break;
+      }
+      options["supportedExtensions"] = supportedExtensions;
+
+      var isPano360Scene = documentPath.EndsWith(".pano360.json", StringComparison.OrdinalIgnoreCase);
+      if (!isPano360Scene) {
         options["css"] = cssFile;
         options["lineMark"] = (_settings.SyncViewWithFirstVisibleLine || _settings.SyncViewWithCaretPosition);
         options["trackFirstLine"] = _settings.SyncViewWithFirstVisibleLine;
@@ -494,6 +513,7 @@ namespace Webview2Viewer
     private string _enabledMarkdownPlugins;
     private bool _showOutline;
     private bool _darkMode;
+    private DocumentKind _documentKind = DocumentKind.Auto;
     // Burger-button state of the outline, reported by the page and handed back on reload.
     private bool _outlineCollapsed;
 
