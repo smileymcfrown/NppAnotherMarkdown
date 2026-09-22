@@ -59,6 +59,12 @@
       this.cbAllowAllExt = new System.Windows.Forms.CheckBox();
       this.cbSupportNoExt = new System.Windows.Forms.CheckBox();
       this.cbAutoShowPanel = new System.Windows.Forms.CheckBox();
+      this.label9 = new System.Windows.Forms.Label();
+      this.tbPreProcessorExe = new System.Windows.Forms.TextBox();
+      this.btnChoosePreProcessor = new System.Windows.Forms.Button();
+      this.btnClearPreProcessor = new System.Windows.Forms.Button();
+      this.label10 = new System.Windows.Forms.Label();
+      this.tbPreProcessorArgs = new System.Windows.Forms.TextBox();
       this.panel1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
       ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
@@ -99,7 +105,7 @@
       // btnSave
       // 
       this.btnSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-      this.btnSave.Location = new System.Drawing.Point(468, 630);
+      this.btnSave.Location = new System.Drawing.Point(468, 690);
       this.btnSave.Name = "btnSave";
       this.btnSave.Size = new System.Drawing.Size(105, 36);
       this.btnSave.TabIndex = 20;
@@ -111,7 +117,7 @@
       // 
       this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
       this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-      this.btnCancel.Location = new System.Drawing.Point(579, 630);
+      this.btnCancel.Location = new System.Drawing.Point(579, 690);
       this.btnCancel.Name = "btnCancel";
       this.btnCancel.Size = new System.Drawing.Size(105, 36);
       this.btnCancel.TabIndex = 21;
@@ -459,12 +465,78 @@
       this.cbAutoShowPanel.UseVisualStyleBackColor = true;
       this.cbAutoShowPanel.CheckedChanged += new System.EventHandler(this.cbAutoShowPanel_CheckedChanged);
       //
+      // label9
+      //
+      this.label9.AutoSize = true;
+      this.label9.Location = new System.Drawing.Point(12, 617);
+      this.label9.Name = "label9";
+      this.label9.Size = new System.Drawing.Size(100, 17);
+      this.label9.TabIndex = 34;
+      this.label9.Text = "Pre-processor:";
+      //
+      // tbPreProcessorExe
+      //
+      this.tbPreProcessorExe.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.tbPreProcessorExe.Location = new System.Drawing.Point(170, 614);
+      this.tbPreProcessorExe.Name = "tbPreProcessorExe";
+      this.tbPreProcessorExe.Size = new System.Drawing.Size(386, 25);
+      this.tbPreProcessorExe.TabIndex = 28;
+      this.tbPreProcessorExe.TextChanged += new System.EventHandler(this.tbPreProcessorExe_TextChanged);
+      //
+      // btnChoosePreProcessor
+      //
+      this.btnChoosePreProcessor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.btnChoosePreProcessor.Location = new System.Drawing.Point(562, 612);
+      this.btnChoosePreProcessor.Name = "btnChoosePreProcessor";
+      this.btnChoosePreProcessor.Size = new System.Drawing.Size(39, 25);
+      this.btnChoosePreProcessor.TabIndex = 29;
+      this.btnChoosePreProcessor.Text = "...";
+      this.btnChoosePreProcessor.UseVisualStyleBackColor = true;
+      this.btnChoosePreProcessor.Click += new System.EventHandler(this.btnChoosePreProcessor_Click);
+      //
+      // btnClearPreProcessor
+      //
+      this.btnClearPreProcessor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+      this.btnClearPreProcessor.Location = new System.Drawing.Point(607, 612);
+      this.btnClearPreProcessor.Name = "btnClearPreProcessor";
+      this.btnClearPreProcessor.Size = new System.Drawing.Size(73, 26);
+      this.btnClearPreProcessor.TabIndex = 30;
+      this.btnClearPreProcessor.Text = "Off";
+      this.btnClearPreProcessor.UseVisualStyleBackColor = true;
+      this.btnClearPreProcessor.Click += new System.EventHandler(this.btnClearPreProcessor_Click);
+      //
+      // label10
+      //
+      this.label10.AutoSize = true;
+      this.label10.Location = new System.Drawing.Point(12, 650);
+      this.label10.Name = "label10";
+      this.label10.Size = new System.Drawing.Size(150, 17);
+      this.label10.TabIndex = 35;
+      this.label10.Text = "Pre-processor arguments:";
+      //
+      // tbPreProcessorArgs
+      //
+      this.tbPreProcessorArgs.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+            | System.Windows.Forms.AnchorStyles.Right)));
+      this.tbPreProcessorArgs.Location = new System.Drawing.Point(170, 647);
+      this.tbPreProcessorArgs.Name = "tbPreProcessorArgs";
+      this.tbPreProcessorArgs.Size = new System.Drawing.Size(510, 25);
+      this.tbPreProcessorArgs.TabIndex = 31;
+      this.tbPreProcessorArgs.TextChanged += new System.EventHandler(this.tbPreProcessorArgs_TextChanged);
+      //
       // SettingsForm
       //
       this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
       this.CancelButton = this.btnCancel;
-      this.ClientSize = new System.Drawing.Size(696, 700);
+      this.ClientSize = new System.Drawing.Size(696, 760);
+      this.Controls.Add(this.label9);
+      this.Controls.Add(this.tbPreProcessorExe);
+      this.Controls.Add(this.btnChoosePreProcessor);
+      this.Controls.Add(this.btnClearPreProcessor);
+      this.Controls.Add(this.label10);
+      this.Controls.Add(this.tbPreProcessorArgs);
       this.Controls.Add(this.label8);
       this.Controls.Add(this.tbSupportedExt);
       this.Controls.Add(this.cbAllowAllExt);
@@ -558,5 +630,11 @@
     private System.Windows.Forms.CheckBox cbAllowAllExt;
     private System.Windows.Forms.CheckBox cbSupportNoExt;
     private System.Windows.Forms.CheckBox cbAutoShowPanel;
+    private System.Windows.Forms.Label label9;
+    private System.Windows.Forms.TextBox tbPreProcessorExe;
+    private System.Windows.Forms.Button btnChoosePreProcessor;
+    private System.Windows.Forms.Button btnClearPreProcessor;
+    private System.Windows.Forms.Label label10;
+    private System.Windows.Forms.TextBox tbPreProcessorArgs;
   }
 }

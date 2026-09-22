@@ -25,6 +25,8 @@ namespace AnotherMarkdown.Forms
     public bool AllowAllExtensions { get; set; }
     public bool SupportFilesWithNoExt { get; set; }
     public bool AutoShowPanel { get; set; }
+    public string PreProcessorCommandFilename { get; set; }
+    public string PreProcessorArguments { get; set; }
 
     public string[] AllowedMarkdownPlugins { get; set; }
 
@@ -59,6 +61,10 @@ namespace AnotherMarkdown.Forms
       SupportFilesWithNoExt = settings.SupportFilesWithNoExt;
       AutoShowPanel = settings.AutoShowPanel;
       tbSupportedExt.Text = SupportedFileExt;
+      PreProcessorCommandFilename = settings.PreProcessorCommandFilename ?? "";
+      PreProcessorArguments = settings.PreProcessorArguments ?? "";
+      tbPreProcessorExe.Text = PreProcessorCommandFilename;
+      tbPreProcessorArgs.Text = PreProcessorArguments;
       cbAllowAllExt.Checked = AllowAllExtensions;
       tbSupportedExt.Enabled = !AllowAllExtensions;
       cbSupportNoExt.Checked = SupportFilesWithNoExt;
@@ -108,16 +114,7 @@ namespace AnotherMarkdown.Forms
     private void tbHtmlFile_TextChanged(object sender, EventArgs e)
     {
       HtmlFileName = tbHtmlFile.Text.Trim();
-      var dir = "";
-      try {
-        dir = string.IsNullOrEmpty(HtmlFileName) ? "" : Path.GetDirectoryName(Path.GetFullPath(HtmlFileName));
-      }
-      catch (Exception) {
-        dir = null;
-      }
-      sblInvalidHtmlPath.Text = (dir == null || (dir != "" && !Directory.Exists(dir)))
-        ? "Automatic HTML output: the folder does not exist."
-        : "";
+      ValidatePaths();
     }
 
     private void btnChooseHtmlFile_Click(object sender, EventArgs e)
@@ -164,6 +161,61 @@ namespace AnotherMarkdown.Forms
     private void cbAutoShowPanel_CheckedChanged(object sender, EventArgs e)
     {
       AutoShowPanel = cbAutoShowPanel.Checked;
+    }
+
+    private void tbPreProcessorExe_TextChanged(object sender, EventArgs e)
+    {
+      PreProcessorCommandFilename = tbPreProcessorExe.Text.Trim();
+      tbPreProcessorArgs.Enabled = PreProcessorCommandFilename.Length != 0;
+      ValidatePaths();
+    }
+
+    private void tbPreProcessorArgs_TextChanged(object sender, EventArgs e)
+    {
+      PreProcessorArguments = tbPreProcessorArgs.Text;
+    }
+
+    private void btnChoosePreProcessor_Click(object sender, EventArgs e)
+    {
+      using (var dialog = new OpenFileDialog()) {
+        dialog.Title = "Pre-processor program";
+        dialog.Filter = "Programs (*.exe;*.bat;*.cmd)|*.exe;*.bat;*.cmd|All files (*.*)|*.*";
+        dialog.RestoreDirectory = true;
+        if (dialog.ShowDialog() == DialogResult.OK) {
+          tbPreProcessorExe.Text = dialog.FileName;
+          if (string.IsNullOrWhiteSpace(tbPreProcessorArgs.Text)) {
+            tbPreProcessorArgs.Text = "%inputfile% %outputfile%";
+          }
+        }
+      }
+    }
+
+    private void btnClearPreProcessor_Click(object sender, EventArgs e)
+    {
+      tbPreProcessorExe.Text = "";
+    }
+
+    // One status line for everything that can block saving.
+    private void ValidatePaths()
+    {
+      var problems = new List<string>();
+      var html = HtmlFileName ?? "";
+      if (html.Length != 0) {
+        try {
+          var dir = Path.GetDirectoryName(Path.GetFullPath(html));
+          if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) {
+            problems.Add("Automatic HTML output: the folder does not exist.");
+          }
+        }
+        catch (Exception) {
+          problems.Add("Automatic HTML output: invalid path.");
+        }
+      }
+      var exe = PreProcessorCommandFilename ?? "";
+      if (exe.Length != 0 && !File.Exists(exe)) {
+        problems.Add("Pre-processor: the program does not exist.");
+      }
+      sblInvalidHtmlPath.Text = string.Join("  ", problems);
     }
 
     private void cbShowOutline_CheckedChanged(object sender, EventArgs e)

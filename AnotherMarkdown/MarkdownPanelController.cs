@@ -94,10 +94,10 @@ namespace AnotherMarkdown
         .Select(li => li.Trim())
         .ToArray();
 
-      // Ini only (no UI), as in NppMarkdownPanel: a command line that rewrites the
-      // Markdown before it is rendered. %inputfile% / %outputfile% are replaced
-      // with temporary file names. A post-processor makes no sense here because the
-      // HTML is produced inside the WebView.
+      // A command line that rewrites the Markdown before it is rendered.
+      // %inputfile% / %outputfile% are replaced with temporary file names. A
+      // post-processor makes no sense here because the HTML is produced inside
+      // the WebView.
       settings.PreProcessorCommandFilename = Win32.ReadIniValue("Options", "PreProcessorExe", _iniFilePath, "");
       settings.PreProcessorArguments = Win32.ReadIniValue("Options", "PreProcessorArguments", _iniFilePath, "");
       settings.AssetsPath = Win32.ReadIniValue("Options", "AssetsPath", _iniFilePath, "");
@@ -267,6 +267,8 @@ namespace AnotherMarkdown
         _settings.AllowAllExtensions = settingsForm.AllowAllExtensions;
         _settings.SupportFilesWithNoExt = settingsForm.SupportFilesWithNoExt;
         _settings.AutoShowPanel = settingsForm.AutoShowPanel;
+        _settings.PreProcessorCommandFilename = settingsForm.PreProcessorCommandFilename;
+        _settings.PreProcessorArguments = settingsForm.PreProcessorArguments;
         _settings.EnabledMarkdownPlugins = settingsForm.AllowedMarkdownPlugins;
 
         _settings.IsDarkModeEnabled = IsDarkModeEnabled();
@@ -718,6 +720,8 @@ namespace AnotherMarkdown
       Win32.WriteIniValue("Options", "ShowOutline", _settings.ShowOutline.ToString(), _iniFilePath);
       Win32.WriteIniValue("Options", "EnableThreeStateToggle", _settings.EnableThreeStateToggle.ToString(), _iniFilePath);
       Win32.WriteIniValue("Options", "SupportedFileExt", _settings.SupportedFileExt ?? "", _iniFilePath);
+      Win32.WriteIniValue("Options", "PreProcessorExe", _settings.PreProcessorCommandFilename ?? "", _iniFilePath);
+      Win32.WriteIniValue("Options", "PreProcessorArguments", _settings.PreProcessorArguments ?? "", _iniFilePath);
       Win32.WriteIniValue("Options", "AllowAllExtensions", _settings.AllowAllExtensions.ToString(), _iniFilePath);
       Win32.WriteIniValue("Options", "SupportFilesWithNoExt", _settings.SupportFilesWithNoExt.ToString(), _iniFilePath);
       Win32.WriteIniValue("Options", "AutoShowPanel", _settings.AutoShowPanel.ToString(), _iniFilePath);
