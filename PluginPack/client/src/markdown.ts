@@ -9,7 +9,8 @@ import { InitSyncView } from './Misc/SynvView';
 import { InitDragAndDrop } from './Misc/DragAndDrop';
 import { InitPasteContent } from './Misc/PasteContent';
 import { MarkdownRenderContext } from './Misc/MarkdownRenderContext';
-import { DynamicScriptsProcessor, importCss } from './Misc/DynamicLoad';
+import { importCss } from './Misc/DynamicLoad';
+import { sanitizeMarkdownHtml } from './Misc/Sanitize';
 
 importCss(["markdown/editor.css"]);
 
@@ -87,14 +88,18 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
     }
   }
 
-  let html = md.render(source);
-  container.innerHTML = html;
+  // markdown-it runs with html:true, so a document can contain arbitrary HTML.
+  // Sanitize before it touches the live DOM: no <script>, no event handlers, no
+  // javascript: URLs, no <iframe>/<object>/<form>. Trusted runtimes (mermaid,
+  // pannellum, highlight.js) are loaded from assets.example by the plugins
+  // themselves via importScript(), never from document content.
+  const html = md.render(source);
+  container.replaceChildren(sanitizeMarkdownHtml(html));
   if (context.postRender.length !== 0) {
     await Promise.all(context.postRender.map(li => li()));
     context.postRender = [];
   }
   renderCompleted.resolve();
-  DynamicScriptsProcessor(container);
 
   InitBottomSpacer();
   InitDragAndDrop();

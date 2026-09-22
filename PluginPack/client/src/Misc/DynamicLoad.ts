@@ -37,16 +37,3 @@ export async function importScript(scripts: string[]) {
     await Promise.all(promises);
   }
 }
-
-export async function DynamicScriptsProcessor(container: HTMLElement) {
-  container.querySelectorAll("script").forEach((oldScript) => {
-    const newScript = document.createElement("script");
-    if (oldScript.src) {
-      newScript.src = oldScript.src;
-    } else {
-      newScript.textContent = oldScript.textContent;
-    }
-    document.head.appendChild(newScript);
-    document.head.removeChild(newScript);
-  });
-}
