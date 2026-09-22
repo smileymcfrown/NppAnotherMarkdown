@@ -30,6 +30,7 @@ import markdownItTaskLists from './markdown-it-task-lists'
 import markdownItEmbedQrcode from './markdown-it-embed-qrcode'
 import markdownItEmbedPano360 from './markdown-it-embed-pano360'
 import markdownItMermaid from './markdown-it-mermaid'
+import markdownItFrontMatter from './markdown-it-frontmatter'
 import { importCss, importScript } from '../Misc/DynamicLoad'
 
 export async function markdownItPluginPack(enabled: string[], md: MarkdownIt) {
@@ -76,6 +77,9 @@ export async function markdownItPluginPack(enabled: string[], md: MarkdownIt) {
     md.use(markdownItEmbed, { config: embed });
   }
 
+  if (enabled.includes("frontmatter")) {
+    md.use(markdownItFrontMatter);
+  }
   if (enabled.includes("attrs")) {
     md.use(attrs);
   }

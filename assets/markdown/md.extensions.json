@@ -29,6 +29,9 @@
   "footnote": {
     "title": "footnote: footnotes"
   },
+  "frontmatter": {
+    "title": "frontmatter: show YAML front matter (--- block at the top) as a yaml code block"
+  },
   "icon": {
     "title": "icon: custom Icons"
   },
