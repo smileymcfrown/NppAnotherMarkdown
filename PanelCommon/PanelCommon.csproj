@@ -49,6 +49,7 @@
     <Compile Include="Events\NavigateToEvent.cs" />
     <Compile Include="Events\PasteImageEvent.cs" />
     <Compile Include="Events\RenderCompletedEvent.cs" />
+    <Compile Include="Events\GotoLineEvent.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

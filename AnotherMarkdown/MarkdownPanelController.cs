@@ -35,6 +35,7 @@ namespace AnotherMarkdown
                 _previewForm.OnEvent.PasteImage += (_, e) => PasteImage(e);
                 _previewForm.OnEvent.Navigate += (_, e) => OpenFile(e);
                 _previewForm.OnEvent.RenderCompleted += (_, e) => RenderCompleted(e);
+                _previewForm.OnEvent.GotoLine += (_, e) => GotoLine(e);
                 _previewForm.DockClosed += (_, e) => PanelClosedByUser();
                 _previewForm.SaveAsHtmlAction = () => SaveAsHtml(lightTheme: false);
                 _previewForm.SaveAsHtmlLightAction = () => SaveAsHtml(lightTheme: true);
@@ -523,6 +524,20 @@ namespace AnotherMarkdown
       var scintillaGateway = scintillaGatewayFactory();
       var pos = scintillaGateway.GetCurrentPos();
       scintillaGateway.InsertText(pos, $"![](./{relativePath})\r\n");
+    }
+
+    // Double-click in the preview: put the caret on that source line and give
+    // the editor the focus so the user can type right away.
+    private void GotoLine(GotoLineEvent args)
+    {
+      var scintillaGateway = scintillaGatewayFactory();
+      var line = Math.Max(0, Math.Min(args.Line, scintillaGateway.GetLineCount() - 1));
+      scintillaGateway.EnsureVisible(line);
+      scintillaGateway.GotoLine(line);
+      // centre the line on screen rather than pinning it to the top edge
+      var visible = scintillaGateway.VisibleFromDocLine(line) - scintillaGateway.LinesOnScreen() / 2;
+      scintillaGateway.SetFirstVisibleLine(Math.Max(0, visible));
+      scintillaGateway.GrabFocus();
     }
 
     private void FirstLineChanged(FirstLineChangedEvent args)

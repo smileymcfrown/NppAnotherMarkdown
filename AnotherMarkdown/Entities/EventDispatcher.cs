@@ -10,5 +10,6 @@ namespace AnotherMarkdown.Entities
     public EventHandler<PasteImageEvent> PasteImage { get; set; }
     public EventHandler<NavigateToEvent> Navigate { get; set; }
     public EventHandler<RenderCompletedEvent> RenderCompleted { get; set; }
+    public EventHandler<GotoLineEvent> GotoLine { get; set; }
   }
 }

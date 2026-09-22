@@ -17,6 +17,8 @@ import { notifyWebEvent } from './Client/Webevent';
 import { InitOutline, RefreshOutline } from './Misc/Outline';
 import { InitStatusBar, UpdateDocumentStats } from './Misc/StatusBar';
 import { InitCodeCopy } from './Misc/CodeCopy';
+import { InitGotoLine } from './Misc/GotoLine';
+import { InitLightbox } from './Misc/Lightbox';
 import { InitAnchorLinks } from './Misc/Anchors';
 import { InitFindBar, RefreshFind, ShowFind } from './Misc/FindBar';
 
@@ -93,9 +95,9 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
   const md = markdownIt(markdownItOptions);
   await markdownItPluginPack(options['md.extensions'], md);
 
-  if (options.lineMark) {
-    md.use(markdownItLineMark);
-  }
+  // Always on: scroll sync uses the anchors when enabled, and double-click-to-
+  // editor-line (Misc/GotoLine.ts) needs them regardless.
+  md.use(markdownItLineMark);
 
   if ((window as any).markdownSetup) {
     let markdownSetup: ((md: markdownIt, context: typeof MarkdownRenderContext) => Promise<void>);
@@ -132,6 +134,8 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
   InitStatusBar();
   InitAnchorLinks();
   InitFindBar(container);
+  InitGotoLine(container);
+  InitLightbox(container);
 
   if (!options.modified && options.pageYOffset && options.pageYOffset !== 0) {
     ScrollToPageY(options.pageYOffset);

@@ -114,6 +114,13 @@ namespace Webview2Viewer.Web
           }
           break;
         }
+        case "gotoLine": {
+          var line = webEvent.Payload["line"]?.ToObject<int>();
+          if (line != null) {
+            _on.GotoLine?.Invoke(this, new GotoLineEvent { Line = line.Value });
+          }
+          break;
+        }
         case "renderCompleted": {
           _on.RenderCompleted?.Invoke(this, new RenderCompletedEvent {
             DocumentUri = webEvent.Payload["document"]?.ToString()
