@@ -40,3 +40,126 @@ p.end {
       0 8px 32px rgba(0,0,0,.15);  
 }
 
+
+/* find bar (Misc/FindBar.ts) */
+.am-findbar {
+  position: fixed;
+  top: 8px;
+  right: 24px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px;
+  background: #f6f8fa;
+  border: 1px solid #d1d5da;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  font: 12px 'Segoe UI', Arial, sans-serif;
+  color: #24292e;
+}
+
+.am-findbar[hidden] {
+  display: none;
+}
+
+.am-findbar input {
+  width: 180px;
+  padding: 3px 6px;
+  border: 1px solid #d1d5da;
+  border-radius: 3px;
+  font: inherit;
+  background: white;
+  color: inherit;
+}
+
+.am-findbar.no-match input {
+  background: #ffecec;
+}
+
+.am-findbar .am-find-count {
+  min-width: 48px;
+  text-align: center;
+  color: #586069;
+}
+
+.am-findbar button {
+  border: 1px solid #d1d5da;
+  border-radius: 3px;
+  background: white;
+  color: #586069;
+  cursor: pointer;
+  padding: 2px 6px;
+  font: inherit;
+  line-height: 1;
+}
+
+.am-findbar button:hover {
+  background: #e1e4e8;
+}
+
+::highlight(am-find) {
+  background-color: #ffe58a;
+  color: #000;
+}
+
+::highlight(am-find-current) {
+  background-color: #ff9632;
+  color: #000;
+}
+
+html.dark .am-findbar,
+html.dark .am-findbar input,
+html.dark .am-findbar button {
+  background: #252525;
+  border-color: #3a3a3a;
+  color: #ddd;
+}
+
+html.dark .am-findbar.no-match input {
+  background: #4a2626;
+}
+
+html.dark .am-findbar button:hover {
+  background: #333;
+}
+
+/* copy button on code blocks (Misc/CodeCopy.ts) */
+.am-code {
+  position: relative;
+}
+
+.am-code > .am-copy-code {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 2px 8px;
+  font: 11px 'Segoe UI', Arial, sans-serif;
+  color: #586069;
+  background: #f6f8fa;
+  border: 1px solid #d1d5da;
+  border-radius: 3px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.am-code:hover > .am-copy-code,
+.am-code > .am-copy-code:focus {
+  opacity: 1;
+}
+
+.am-code > .am-copy-code.done {
+  color: #22863a;
+  opacity: 1;
+}
+
+html.dark .am-code > .am-copy-code {
+  color: #999;
+  background: #252525;
+  border-color: #3a3a3a;
+}
+
+html.dark .am-code > .am-copy-code.done {
+  color: #7ee787;
+}

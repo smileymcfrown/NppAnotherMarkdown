@@ -24,6 +24,8 @@ namespace Webview2Viewer
   {
     public Action<string> StatusTextChangedAction { get; set; }
     public Action RenderingDoneAction { get; set; }
+    // Raised when the user changes the zoom in the WebView itself (Ctrl+wheel), in percent.
+    public Action<int> ZoomLevelChangedAction { get; set; }
 
     public Webview2WebbrowserControl()
     {
@@ -68,6 +70,12 @@ namespace Webview2Viewer
       webView.ZoomFactor = ConvertToZoomFactor(_settings.ZoomLevel);
       webView.CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
       webView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
+      webView.ZoomFactorChanged += (s, e) => {
+        var percent = (int) Math.Round(webView.ZoomFactor * 100);
+        if (percent != _settings.ZoomLevel) {
+          ZoomLevelChangedAction?.Invoke(percent);
+        }
+      };
 
       var fs = new LocalFileService(webEnvironment, "local.example", _on, _sessionToken);
       AddWebService(webView, fs);
@@ -105,6 +113,14 @@ namespace Webview2Viewer
           case "statusText":
             StatusTextChangedAction?.Invoke(message["text"]?.ToString() ?? "");
             break;
+          case "copyText": {
+            // "Copy" button on code blocks; the page cannot use the clipboard itself.
+            var text = message["text"]?.ToString();
+            if (!string.IsNullOrEmpty(text)) {
+              Clipboard.SetText(text);
+            }
+            break;
+          }
         }
       }
       catch (Exception) { }
@@ -293,6 +309,21 @@ namespace Webview2Viewer
         + "\n</div>\n</body>\n</html>\n";
     }
 
+    public async Task ShowFindAsync()
+    {
+      await ExecuteWebviewActionAsync(async (webView) => {
+        webView.Focus();
+        await webView.ExecuteScriptAsync("if (window.showFind) window.showFind();");
+      });
+    }
+
+    public async Task ShowPrintDialogAsync()
+    {
+      await ExecuteWebviewActionAsync((webView) => {
+        webView.CoreWebView2.ShowPrintUI(CoreWebView2PrintDialogKind.Browser);
+      });
+    }
+
     public async Task<bool> ExportPdfAsync(string filePath)
     {
       return await ExecuteWebviewFuncAsync((webView) => webView.CoreWebView2.PrintToPdfAsync(filePath, null));
@@ -402,7 +433,9 @@ namespace Webview2Viewer
       }
 
       if (navUri.DnsSafeHost == "local.example") {
-        if (_on.Navigate != null && navUri.AbsolutePath.EndsWith(".md", StringComparison.OrdinalIgnoreCase)) {
+        // A link to a local file: the host opens it in the editor if it is a
+        // previewable text file, and ignores it otherwise (never ShellExecute).
+        if (_on.Navigate != null) {
           var path = HttpUtility2.UriToPath(navUri.AbsolutePath);
           if (File.Exists(path)) {
             _on.Navigate(this, new NavigateToEvent { Filename = path });

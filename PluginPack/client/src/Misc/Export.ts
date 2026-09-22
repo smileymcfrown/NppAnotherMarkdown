@@ -39,7 +39,7 @@ export function exportDocument(container: HTMLElement): IExportedDocument {
   }
 
   // Scroll-sync anchors (markdown-it-linemark) are noise outside the preview.
-  for (const el of Array.from(clone.querySelectorAll('span.linemark'))) {
+  for (const el of Array.from(clone.querySelectorAll('span.linemark, button.am-copy-code'))) {
     el.remove();
   }
 

@@ -67,6 +67,7 @@
       return {
         scrollToLine: viewPlugin.scrollToLine,
         exportDocument: viewPlugin.exportDocument,
+        showFind: viewPlugin.showFind,
         documentChanged,
         dispose: () => { }
       }

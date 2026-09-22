@@ -8,6 +8,8 @@
 
 let installed = false;
 let lastText = "";
+let defaultText = "";
+let hovering = false;
 
 function postStatus(text: string) {
   if (text === lastText) {
@@ -29,6 +31,33 @@ function linkTarget(a: HTMLAnchorElement): string {
   return a.href.replace(/^http:\/\/local\.example\/disk(\w)\//i, "$1:/");
 }
 
+// Text shown while no link is hovered (word count etc.).
+export function SetStatusInfo(text: string) {
+  defaultText = text;
+  if (!hovering) {
+    postStatus(defaultText);
+  }
+}
+
+// Words / characters / estimated reading time of the rendered document.
+export function UpdateDocumentStats(container: HTMLElement) {
+  // Text nodes joined with spaces (innerText would force layout on the whole,
+  // possibly huge, document); UI added by the preview itself is skipped.
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+    acceptNode: (n) => n.parentElement?.closest("button, script, style") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+  });
+  const parts: string[] = [];
+  let n: Node | null;
+  while ((n = walker.nextNode())) {
+    parts.push((n as Text).data);
+  }
+  const text = parts.join(" ");
+  const words = text.split(/\s+/).filter(w => w.length !== 0).length;
+  const chars = text.replace(/\s/g, "").length;
+  const minutes = Math.max(1, Math.round(words / 200));
+  SetStatusInfo(`${words.toLocaleString()} words, ${chars.toLocaleString()} characters, ~${minutes} min read`);
+}
+
 export function InitStatusBar() {
   if (installed) {
     return;
@@ -36,7 +65,11 @@ export function InitStatusBar() {
   installed = true;
   document.addEventListener("mouseover", (e) => {
     const a = (e.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
-    postStatus(a ? linkTarget(a) : "");
+    hovering = a !== null;
+    postStatus(a ? linkTarget(a) : defaultText);
   }, { passive: true });
-  document.addEventListener("mouseleave", () => postStatus(""), { passive: true });
+  document.addEventListener("mouseleave", () => {
+    hovering = false;
+    postStatus(defaultText);
+  }, { passive: true });
 }

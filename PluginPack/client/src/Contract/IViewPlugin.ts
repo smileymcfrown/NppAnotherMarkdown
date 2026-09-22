@@ -16,5 +16,7 @@ export interface IViewPlugin {
   scrollToLine(nline: number): void;
   // Optional: snapshot of the rendered document for Save-as-HTML / clipboard.
   exportDocument?(): unknown;
+  // Optional: open the in-page find bar.
+  showFind?(): void;
   dispose(): void;
 }

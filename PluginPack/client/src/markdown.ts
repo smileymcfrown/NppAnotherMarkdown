@@ -15,8 +15,10 @@ import { sanitizeMarkdownHtml } from './Misc/Sanitize';
 import { exportDocument } from './Misc/Export';
 import { notifyWebEvent } from './Client/Webevent';
 import { InitOutline, RefreshOutline } from './Misc/Outline';
-import { InitStatusBar } from './Misc/StatusBar';
+import { InitStatusBar, UpdateDocumentStats } from './Misc/StatusBar';
+import { InitCodeCopy } from './Misc/CodeCopy';
 import { InitAnchorLinks } from './Misc/Anchors';
+import { InitFindBar, RefreshFind, ShowFind } from './Misc/FindBar';
 
 importCss(["markdown/editor.css"]);
 
@@ -117,6 +119,9 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
   }
   renderCompleted.resolve();
   RefreshOutline();
+  RefreshFind();
+  InitCodeCopy(container);
+  UpdateDocumentStats(container);
   // Lets the host know the DOM now holds this version of the document
   // (used for the automatic HTML output).
   notifyWebEvent("renderCompleted", { document: sourceUrl }).catch(() => { });
@@ -126,6 +131,7 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
   InitPasteContent();
   InitStatusBar();
   InitAnchorLinks();
+  InitFindBar(container);
 
   if (!options.modified && options.pageYOffset && options.pageYOffset !== 0) {
     ScrollToPageY(options.pageYOffset);
@@ -136,5 +142,6 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
   setDocument,
   scrollToLine: ScrollToLine,
   exportDocument: () => exportDocument(document.getElementById("content")!),
+  showFind: ShowFind,
   dispose: () => { }
 } satisfies IViewPlugin;

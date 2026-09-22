@@ -20,6 +20,8 @@ namespace AnotherMarkdown.Forms
     public Action SaveAsHtmlLightAction { get; set; }
     public Action CopyHtmlAction { get; set; }
     public Action ExportPdfAction { get; set; }
+    public Action FindAction { get; set; }
+    public Action<int> ZoomLevelChanged { get; set; }
 
     public static MarkdownPreviewForm Create(Settings settings) { 
       return new MarkdownPreviewForm(settings);
@@ -40,6 +42,7 @@ namespace AnotherMarkdown.Forms
       webView.StatusTextChangedAction = (status) => {
         toolStripStatusLabel1.Text = status;
       };
+      webView.ZoomLevelChangedAction = (level) => ZoomLevelChanged?.Invoke(level);
       _webView = webView;
 
       InitializeToolbar();
@@ -55,12 +58,20 @@ namespace AnotherMarkdown.Forms
       export.DropDownItems.Add("Save as HTML (light theme)...", null, (s, e) => SaveAsHtmlLightAction?.Invoke());
       export.DropDownItems.Add("Export to PDF...", null, (s, e) => ExportPdfAction?.Invoke());
 
+      var find = new ToolStripButton("Find") {
+        DisplayStyle = ToolStripItemDisplayStyle.Text,
+        ToolTipText = "Find in the preview (Ctrl+F while the preview has focus)"
+      };
+      find.Click += (s, e) => FindAction?.Invoke();
+
       var copy = new ToolStripButton("Copy HTML") {
         DisplayStyle = ToolStripItemDisplayStyle.Text,
         ToolTipText = "Copy the preview to the clipboard as formatted text (HTML)"
       };
       copy.Click += (s, e) => CopyHtmlAction?.Invoke();
 
+      tbPreview.Items.Add(find);
+      tbPreview.Items.Add(new ToolStripSeparator());
       tbPreview.Items.Add(export);
       tbPreview.Items.Add(new ToolStripSeparator());
       tbPreview.Items.Add(copy);
@@ -99,6 +110,16 @@ namespace AnotherMarkdown.Forms
     public Task<bool> ExportPdfAsync(string filePath)
     {
       return _webView != null ? _webView.ExportPdfAsync(filePath) : Task.FromResult(false);
+    }
+
+    public Task ShowFindAsync()
+    {
+      return _webView != null ? _webView.ShowFindAsync() : Task.CompletedTask;
+    }
+
+    public Task ShowPrintDialogAsync()
+    {
+      return _webView != null ? _webView.ShowPrintDialogAsync() : Task.CompletedTask;
     }
 
     public async Task ScrollToElementWithLineNo(int lineNo)

@@ -40,6 +40,14 @@ namespace AnotherMarkdown
                 _previewForm.SaveAsHtmlLightAction = () => SaveAsHtml(lightTheme: true);
                 _previewForm.CopyHtmlAction = CopyHtmlToClipboard;
                 _previewForm.ExportPdfAction = ExportToPdf;
+                _previewForm.FindAction = ShowFind;
+                _previewForm.ZoomLevelChanged = (level) => {
+                  // Ctrl+wheel in the preview: keep the new zoom as the setting.
+                  if (level >= 80 && level <= 800 && level != _settings.ZoomLevel) {
+                    _settings.ZoomLevel = level;
+                    SaveSettings();
+                  }
+                };
               }
               catch (Exception ex) {
                 Console.WriteLine(ex.ToString());
@@ -225,14 +233,19 @@ namespace AnotherMarkdown
       PluginBase.SetCommand(3, "Synchronize with &first visible line in editor", SyncViewWithFirstVisibleLineClicked, _settings.SyncViewWithFirstVisibleLine);
       PluginBase.SetCommand(4, "Show &outline", ShowOutlineClicked, _settings.ShowOutline);
       PluginBase.SetCommand(5, "---", null);
-      PluginBase.SetCommand(6, "Save as &HTML...", () => SaveAsHtml(lightTheme: false));
-      PluginBase.SetCommand(7, "Save as HTML (&light theme)...", () => SaveAsHtml(lightTheme: true));
-      PluginBase.SetCommand(8, "&Copy HTML to clipboard", CopyHtmlToClipboard);
-      PluginBase.SetCommand(9, "Export to &PDF...", ExportToPdf);
-      PluginBase.SetCommand(10, "---", null);
-      PluginBase.SetCommand(11, "&Settings", EditSettings);
-      PluginBase.SetCommand(12, "&Help", ShowHelp);
-      PluginBase.SetCommand(13, "&About", ShowAboutDialog);
+      PluginBase.SetCommand(6, "&Find in preview...", ShowFind);
+      PluginBase.SetCommand(7, "&Refresh preview", RefreshPreview);
+      PluginBase.SetCommand(8, "---", null);
+      PluginBase.SetCommand(9, "Save as &HTML...", () => SaveAsHtml(lightTheme: false));
+      PluginBase.SetCommand(10, "Save as HTML (&light theme)...", () => SaveAsHtml(lightTheme: true));
+      PluginBase.SetCommand(11, "&Copy HTML to clipboard", CopyHtmlToClipboard);
+      PluginBase.SetCommand(12, "Export to &PDF...", ExportToPdf);
+      PluginBase.SetCommand(13, "&Print...", PrintPreview);
+      PluginBase.SetCommand(14, "Open in &browser", OpenInBrowser);
+      PluginBase.SetCommand(15, "---", null);
+      PluginBase.SetCommand(16, "&Settings", EditSettings);
+      PluginBase.SetCommand(17, "&Help", ShowHelp);
+      PluginBase.SetCommand(18, "&About", ShowAboutDialog);
       _myDlgId = 0;
     }
 
@@ -370,6 +383,52 @@ namespace AnotherMarkdown
       }
     }
 
+    private async void ShowFind()
+    {
+      if (!EnsurePreviewForExport()) {
+        return;
+      }
+      await PreviewForm.ShowFindAsync();
+    }
+
+    private void RefreshPreview()
+    {
+      if (_isPanelVisible) {
+        RenderMarkdown(force: true);
+      }
+    }
+
+    private async void PrintPreview()
+    {
+      if (!EnsurePreviewForExport()) {
+        return;
+      }
+      await PreviewForm.ShowPrintDialogAsync();
+    }
+
+    // Writes the export to a temp file and opens it with the default browser.
+    private async void OpenInBrowser()
+    {
+      if (!EnsurePreviewForExport()) {
+        return;
+      }
+      try {
+        var html = await PreviewForm.ExportHtmlAsync(lightTheme: false);
+        if (html == null) {
+          return;
+        }
+        var dir = Path.Combine(Path.GetTempPath(), Main.ModuleName);
+        Directory.CreateDirectory(dir);
+        var file = Path.Combine(dir, SuggestedExportName(".html"));
+        File.WriteAllText(file, html, new UTF8Encoding(false));
+        // Our own file; the shell association for .html is the user's browser.
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(file) { UseShellExecute = true });
+      }
+      catch (Exception ex) {
+        MessageBox.Show("Could not open the preview in the browser:\n" + ex.Message, Main.PluginTitle, MessageBoxButtons.OK, MessageBoxIcon.Error);
+      }
+    }
+
     // Automatic HTML output: after every render, write the preview to the configured file.
     private async void RenderCompleted(RenderCompletedEvent args)
     {
@@ -390,9 +449,15 @@ namespace AnotherMarkdown
 
     #endregion
 
+    // Link to a local file clicked in the preview: open it in Notepad++ when it is
+    // something we would preview (Markdown, or any configured extension).
     private void OpenFile(NavigateToEvent args)
     {
       if (!File.Exists(args.Filename)) {
+        return;
+      }
+      var isMarkdown = args.Filename.EndsWith(".md", StringComparison.OrdinalIgnoreCase);
+      if (!isMarkdown && !IsSupportedFile(args.Filename)) {
         return;
       }
       Win32.SendMessage(PluginBase.nppData._nppHandle, (uint) NppMsg.NPPM_DOOPEN, 0, args.Filename);
