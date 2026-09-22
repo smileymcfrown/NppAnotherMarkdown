@@ -13,6 +13,8 @@ body {
   color: #333;
   padding: 10px;
   max-width: 800px;
+  /* narrow panel: scroll horizontally instead of wrapping every word */
+  min-width: 250px;
   width: calc(100% - 50px);
   margin-left: auto;
   margin-right: auto;
