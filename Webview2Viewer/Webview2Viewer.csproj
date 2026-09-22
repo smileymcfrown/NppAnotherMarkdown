@@ -67,6 +67,7 @@
     <Compile Include="Web\ApiService.cs" />
     <Compile Include="Web\Dto\WebEventDto.cs" />
     <Compile Include="Web\WebResource.cs" />
+    <Compile Include="Web\WebSession.cs" />
     <Compile Include="Webview2WebbrowserControl.cs" />
     <Compile Include="Web\LocalFileService.cs" />
   </ItemGroup>

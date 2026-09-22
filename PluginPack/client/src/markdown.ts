@@ -10,6 +10,7 @@ import { InitDragAndDrop } from './Misc/DragAndDrop';
 import { InitPasteContent } from './Misc/PasteContent';
 import { MarkdownRenderContext } from './Misc/MarkdownRenderContext';
 import { importCss } from './Misc/DynamicLoad';
+import { setSessionToken } from './Client/Session';
 import { sanitizeMarkdownHtml } from './Misc/Sanitize';
 
 importCss(["markdown/editor.css"]);
@@ -21,9 +22,11 @@ async function setDocument(container: HTMLElement, args: Partial<IDocumentOption
     lineMark: false,
     trackFirstLine: false,
     pageYOffset: null,
+    token: "",
     "md.extensions": [],
     ...args
   }
+  setSessionToken(options.token);
 
   const sourceUrl = options.document;
   const match = sourceUrl.match(/\/([^\/]+)$/);

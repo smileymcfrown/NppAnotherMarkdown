@@ -1,3 +1,4 @@
+import { authHeaders } from "./Session";
 
 export async function PasteImageIntoDocument(file: File) {
   var pasteResult = Promise.withResolvers<void>();
@@ -8,7 +9,7 @@ export async function PasteImageIntoDocument(file: File) {
         const blob = new Blob([ev.target.result], { type: file.type });
         const fd = new FormData();
         fd.append("image", blob, "./img/" + file.name);
-        await fetch('http://api.example/paste-image', { method: "POST", body: fd });
+        await fetch('http://api.example/paste-image', { method: "POST", headers: authHeaders(), body: fd });
       }
       pasteResult.resolve();
     }

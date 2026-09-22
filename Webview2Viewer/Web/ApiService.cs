@@ -14,11 +14,12 @@ namespace Webview2Viewer.Web
   {
     public string Hostname { get; }
 
-    public ApiService(CoreWebView2Environment environment, string host, IEventDispatcher eventDispatcher)
+    public ApiService(CoreWebView2Environment environment, string host, IEventDispatcher eventDispatcher, string sessionToken)
     {
       _httpEnvironment = environment;
       Hostname = host;
       _on = eventDispatcher;
+      _sessionToken = sessionToken;
       _methods.Add(new ApiMethod { Method = "POST", Path = "/webevent", Handler = PostWebEvent });
       _methods.Add(new ApiMethod { Method = "POST", Path = "/paste-image", Handler = PasteImage });
     }
@@ -122,7 +123,7 @@ namespace Webview2Viewer.Web
         }
         else {
           var headers = new List<string> {
-            "Access-Control-Allow-Headers: *",
+            "Access-Control-Allow-Headers: Content-Type, " + WebSession.TokenHeader,
             "Access-Control-Allow-Methods: " + string.Join(",", methods.Select(li => li.Method).Union(new string[] { "OPTIONS" }))
           };
           e.Response = NoContent(headers);
@@ -131,6 +132,12 @@ namespace Webview2Viewer.Web
       }
       foreach (var method in _methods) {
         if (method.Method == e.Request.Method && method.Path == requestUri.AbsolutePath) {
+          // Every API method has side effects (editor events, files written to disk):
+          // all of them require the session token.
+          if (!WebSession.IsAuthorized(e.Request, _sessionToken)) {
+            e.Response = Error403();
+            return true;
+          }
           e.Response = method.Handler(e.Request);
           return true;
         }
@@ -159,6 +166,11 @@ namespace Webview2Viewer.Web
     private CoreWebView2WebResourceResponse Error404()
     {
       return _httpEnvironment.CreateWebResourceResponse(new MemoryStream(), 404, "NotFound", $"");
+    }
+
+    private CoreWebView2WebResourceResponse Error403()
+    {
+      return _httpEnvironment.CreateWebResourceResponse(new MemoryStream(), 403, "Forbidden", "Access-Control-Allow-Origin: *");
     }
 
     private CoreWebView2WebResourceResponse Error400(List<string> headers = null)
@@ -205,5 +217,6 @@ namespace Webview2Viewer.Web
     private List<ApiMethod> _methods = new List<ApiMethod>();
     private readonly CoreWebView2Environment _httpEnvironment;
     private readonly IEventDispatcher _on;
+    private readonly string _sessionToken;
   }
 }

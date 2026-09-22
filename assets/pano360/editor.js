@@ -21,7 +21,7 @@ const dependencies = [
   });
 });
 
-const editorConstructor = function(container, config, basePath) {
+const editorConstructor = function(container, config, basePath, authHeaders = (h => h)) {
   let viewer;
   let hotspotSeq = 0;
   let onSave = [];
@@ -163,7 +163,7 @@ const editorConstructor = function(container, config, basePath) {
       </div>
       `;
 
-    const panos = (await (await (fetch(basePath + "/pano*.jpg"))).json())
+    const panos = (await (await (fetch(basePath + "/pano*.jpg", { headers: authHeaders() }))).json())
       .filter(li => li.type === 'file')
       .map(li => li.name);
 
@@ -281,6 +281,10 @@ const editorConstructor = function(container, config, basePath) {
 
 window.viewPlugin = (() => {
   let context = {};
+  // Session token from the host (options.token); required by local.example for
+  // PUT and directory listings, see Webview2Viewer/Web/WebSession.cs.
+  let sessionToken = "";
+  const authHeaders = (extra = {}) => ({ ...extra, "X-AnotherMarkdown-Token": sessionToken });
 
   async function save(editor, documentUrl) {
     const content = JSON.stringify(editor.getDocument(), null, 2);
@@ -290,9 +294,9 @@ window.viewPlugin = (() => {
     context['current.content'] = content;
     await fetch(documentUrl, {
       method: "PUT",
-      headers: {
+      headers: authHeaders({
         "Content-Type": "application/json"
-      },
+      }),
       body: content
     });
   }
@@ -306,6 +310,9 @@ window.viewPlugin = (() => {
     }
     options = { ...options, ...args };
     const { document: url } = options;
+    if (options.token) {
+      sessionToken = options.token;
+    }
 
     await Promise.all(dependencies);
     const content = await (await fetch(url)).text();
@@ -339,7 +346,7 @@ window.viewPlugin = (() => {
       container.innerHTML = "";
       const basePath = url.substring(0, url.lastIndexOf('/'));
 
-      const editor = editorConstructor(container, config, basePath);
+      const editor = editorConstructor(container, config, basePath, authHeaders);
       editor.onSave(() => save(editor, url));
       context['current.editor'] = editor;
     }

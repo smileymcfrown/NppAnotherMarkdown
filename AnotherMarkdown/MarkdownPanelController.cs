@@ -232,14 +232,26 @@ namespace AnotherMarkdown
     private void PasteImage(PasteImageEvent args)
     {
       var path = _nppGateway.GetCurrentFilePath();
-      var rootDir = Path.GetDirectoryName(path);
-      var targetDir = Path.Combine(rootDir, Path.GetDirectoryName(args.Filename));
+      var rootDir = Path.GetFullPath(Path.GetDirectoryName(path));
+      var targetDir = Path.GetFullPath(Path.Combine(rootDir, Path.GetDirectoryName(args.Filename) ?? ""));
+
+      // The target folder comes from the page; never write outside the document's folder.
+      var rootPrefix = rootDir.TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+      if (targetDir != rootDir.TrimEnd(Path.DirectorySeparatorChar)
+          && !targetDir.StartsWith(rootPrefix, StringComparison.OrdinalIgnoreCase)) {
+        return;
+      }
+
+      var extension = Path.GetExtension(args.Filename).ToLower();
+      if (extension.Length < 2 || extension.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) {
+        return;
+      }
+      extension = extension.Substring(1);
 
       if (!Directory.Exists(targetDir)) {
         Directory.CreateDirectory(targetDir);
       }
 
-      var extension = Path.GetExtension(args.Filename).ToLower().Substring(1);
       var sameFiles = Directory.GetFiles(targetDir, $"*.{extension}", SearchOption.TopDirectoryOnly);
       string filename = null;
 

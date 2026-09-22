@@ -64,10 +64,10 @@ namespace Webview2Viewer
       webView.ZoomFactor = ConvertToZoomFactor(_settings.ZoomLevel);
       webView.CoreWebView2.WebResourceRequested += CoreWebView2_WebResourceRequested;
 
-      var fs = new LocalFileService(webEnvironment, "local.example", _on);
+      var fs = new LocalFileService(webEnvironment, "local.example", _on, _sessionToken);
       AddWebService(webView, fs);
 
-      var api = new ApiService(webEnvironment, "api.example", _on);
+      var api = new ApiService(webEnvironment, "api.example", _on, _sessionToken);
       AddWebService(webView, api);
       return webView;
     }
@@ -170,7 +170,10 @@ namespace Webview2Viewer
 
       loader = loader.Replace("__BASE_URL__", HttpUtility2.PathToUri(baseDir));
       var options = new JObject {
-        ["document"] = "http://local.example" + fs.DocumentUri
+        ["document"] = "http://local.example" + fs.DocumentUri,
+        // Handed only to our own loader page; the view plugins send it back as the
+        // X-AnotherMarkdown-Token header on every request that changes state.
+        ["token"] = _sessionToken
       };
 
       if (documentPath.EndsWith(".md")) {
@@ -320,6 +323,9 @@ namespace Webview2Viewer
 
     private Task<WebView2> _webView;
     private object _webViewInitLock = new object();
+    // Random per-instance secret shared with the page (see SetContentAsync) and
+    // checked by the web services before any write.
+    private readonly string _sessionToken = WebSession.NewToken();
     private string _cssFile;
     private string _assetPath;
     private ISettings _settings;

@@ -2,6 +2,7 @@ import MarkdownIt from "markdown-it/lib/index.mjs";
 import StateCore from "markdown-it/lib/rules_core/state_core.mjs";
 
 import { MarkdownRenderContext } from "../Misc/MarkdownRenderContext";
+import { authHeaders } from "../Client/Session";
 import Token from "markdown-it/lib/token.mjs";
 
 var disableCheckboxes = false;
@@ -112,9 +113,9 @@ async function onTaskChanged(e: Event) {
     context.source = lines.join("\n");
     await fetch(context.sourceUrl, {
       method: "PUT",
-      headers: {
+      headers: authHeaders({
         "Content-Type": "text/text"
-      },
+      }),
       body: context.source
     });
   }

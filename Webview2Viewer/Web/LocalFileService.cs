@@ -19,11 +19,12 @@ namespace Webview2Viewer.Web
     public string DocumentContent { get; set; }
     public string Hostname { get; }
 
-    public LocalFileService(CoreWebView2Environment environment, string host, IEventDispatcher eventDispatcher)
+    public LocalFileService(CoreWebView2Environment environment, string host, IEventDispatcher eventDispatcher, string sessionToken)
     {
       _httpEnvironment = environment;
       Hostname = host;
       _on = eventDispatcher;
+      _sessionToken = sessionToken;
     }
 
     public void SetContent(string documentPath, string content)
@@ -63,6 +64,11 @@ namespace Webview2Viewer.Web
         Error404(e);
         return;
       }
+      // PUT replaces the text in the Notepad++ editor: only our own page may do that.
+      if (!WebSession.IsAuthorized(e.Request, _sessionToken)) {
+        Error403(e);
+        return;
+      }
 
       var headers = new List<string> {
         "Access-Control-Allow-Origin: *"
@@ -89,6 +95,13 @@ namespace Webview2Viewer.Web
       };
 
       if (Regex.IsMatch(requestUri.AbsolutePath, @"\*\.(\*|.+)$")) {
+        // Directory listing (used by the pano360 scene editor). Serving individual
+        // files a document links to is expected; enumerating folders is not something
+        // document content may do, so it requires the session token.
+        if (!WebSession.IsAuthorized(e.Request, _sessionToken)) {
+          Error403(e);
+          return;
+        }
         var path = HttpUtility2.UriToPath(requestUri.AbsolutePath);
         var mask = Path.GetFileName(path);
 
@@ -155,12 +168,17 @@ namespace Webview2Viewer.Web
       e.Response = _httpEnvironment.CreateWebResourceResponse(new MemoryStream(), 404, "NotFound", $"");
     }
 
+    private void Error403(CoreWebView2WebResourceRequestedEventArgs e)
+    {
+      e.Response = _httpEnvironment.CreateWebResourceResponse(new MemoryStream(), 403, "Forbidden", "Access-Control-Allow-Origin: *");
+    }
+
     private void HttpOptionsContent(CoreWebView2WebResourceRequestedEventArgs e, Uri uri)
     {
       var charset = "";
       var headers = new List<string> {
         "Access-Control-Allow-Origin: *",
-        "Access-Control-Allow-Headers: *"
+        "Access-Control-Allow-Headers: Content-Type, " + WebSession.TokenHeader
       };
 
       if (DocumentUri.Equals(uri.AbsolutePath, StringComparison.InvariantCultureIgnoreCase)) {
@@ -188,5 +206,6 @@ namespace Webview2Viewer.Web
     private byte[] _documentBytesData;
     private readonly CoreWebView2Environment _httpEnvironment;
     private readonly IEventDispatcher _on;
+    private readonly string _sessionToken;
   }
 }

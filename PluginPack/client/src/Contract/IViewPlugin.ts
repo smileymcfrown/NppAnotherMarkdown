@@ -4,6 +4,7 @@ export interface IDocumentOptions {
   lineMark: boolean,
   trackFirstLine: boolean,
   pageYOffset: number|null,
+  token: string,
   "md.extensions": string[]
 }
 
