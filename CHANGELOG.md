@@ -1,5 +1,35 @@
 ## Version History
 
+### Unreleased - security hardening
+
+A previewed Markdown document could run arbitrary JavaScript inside the preview
+(scripts in the rendered HTML were deliberately re-executed), read any file on the
+machine through the `local.example` virtual host, rewrite the editor buffer, and
+launch programs through `file:`/custom-scheme links. Only open files from sources
+you trust with older builds.
+
+* Rendered HTML is sanitized with [DOMPurify](https://github.com/cure53/DOMPurify)
+  before it is inserted into the preview: no `<script>`, event handlers,
+  `javascript:` URLs, `<iframe>`/`<object>`/`<embed>`, `<form>`, `<meta>`, `<base>`.
+  Inline HTML, `<style>`, `<details>`, task-list checkboxes, KaTeX, Mermaid, SVG
+  icons and all `@mdit` plugin output keep working.
+* Script tags found in a document are no longer executed. Trusted runtimes
+  (Mermaid, Pannellum, highlight.js) are still loaded by the plugins themselves
+  from the `assets` folder.
+* Links are handed to the shell only for `http:`, `https:` and `mailto:`. Anything
+  else is ignored. `target="_blank"` / `window.open` links go the same way instead
+  of opening a popup WebView2 window.
+* Every request that changes state (`PUT` document from the task-list/pano editors,
+  `POST /webevent`, `POST /paste-image`, directory listings) requires a random
+  per-session token that only the plugin's own page knows; requests without it get
+  `403`.
+* Pasted/dropped images can only be written below the document's folder.
+* Build: `yarn build:app` no longer fails on a fresh clone because `dist/js` did
+  not exist yet.
+
+See `AnotherMarkdown/Resources/nppMdP.tests/Test-Security.md` for a manual
+regression checklist.
+
 ### NppAnotherMarkdown 0.1.12 (released 2026-08-17)
 * added support mermaid plugin (thanks to @MassimilianoPili)  
 ![](help/plugin-mermaid.jpg) 
