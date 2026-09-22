@@ -1,5 +1,17 @@
 ## Version History
 
+### Unreleased - export features
+
+* Save as HTML... / Save as HTML (light theme)... - standalone HTML with inlined
+  stylesheets and absolute resource paths (plugin menu and preview toolbar).
+* Copy HTML to clipboard - `CF_HTML` for Word/Outlook plus plain HTML source.
+* Export to PDF...
+* Automatic HTML output - settings option to write the rendered HTML to a file
+  after every preview update.
+* New `frontmatter` Markdown extension (enabled by default on fresh installs;
+  existing installs can enable it in Settings): YAML front matter is shown as a
+  `yaml` code block.
+
 ### Unreleased - security hardening
 
 A previewed Markdown document could run arbitrary JavaScript inside the preview

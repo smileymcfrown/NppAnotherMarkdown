@@ -20,6 +20,7 @@ The plugin is a fork of the [NppMarkdownPanel plugin](https://github.com/mohzy83
 | [emoji](https://github.com/markdown-it/markdown-it-emoji)      | Emoji |
 | [figure](https://mdit-plugins.github.io/figure.html)           | Generating figures with captions from images |
 | [footnote](https://mdit-plugins.github.io/footnote.html)       | Footnotes |
+| frontmatter                                                    | YAML front matter (a `---` block at the top of the file) is shown as a `yaml` code block instead of being rendered as Markdown |
 | [highlight.js](https://github.com/highlightjs/highlight.js)    | Code syntax highlight |
 | [icon](https://mdit-plugins.github.io/icon.html)               | Icons |
 | [imgLazyLoad](https://mdit-plugins.github.io/img-lazyload.html)| Lazy loading for images |
@@ -97,11 +98,29 @@ To open the settings for this plugin: Plugins -> AnotherMarkdown -> Settings
 * #### Zoom Level
     This allows you to set the zoom level of the preview
 
+* #### Automatic HTML Output
+    This allows you to select a file to save the rendered HTML to every time the preview is rendered. This is a way to automatically save the rendered content to use elsewhere. Leave it empty (button *Off*) to disable the automatic saving.  
+    __Note: This is a global setting, so all previewed documents will save to the same file.__
+
 * #### Show Toolbar in Preview Window
-    Checking this box will enable the toolbar in the preview window. By default, this is unchecked.
+    Checking this box will enable the toolbar in the preview window (Export / Copy HTML buttons). By default, this is unchecked.
 
 * #### Show Statusbar in Preview Window (Preview Links)
     Checking this box will show the status bar, which previews urls for links. By default, this is unchecked.
+
+### Export (Plugins -> AnotherMarkdown, or the preview window toolbar)
+
+* #### Save as HTML...
+    Saves the rendered preview as a standalone HTML document: all stylesheets are inlined and image/link paths are made absolute, so the file can be moved anywhere.
+
+* #### Save as HTML (light theme)...
+    The same, but always with the light stylesheet (even while Notepad++ dark mode is enabled).
+
+* #### Copy HTML to clipboard
+    Copies the rendered preview to the clipboard as formatted text (`CF_HTML`, pastes with formatting into Word, Outlook, ...) and as plain HTML source for text editors.
+
+* #### Export to PDF...
+    Prints the current preview to a PDF file.
 
 ### Synchronize viewer with caret position
 
